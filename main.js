@@ -23680,30 +23680,37 @@ var _user$project$Mainview_v4$view = function (model) {
 					_1: {ctor: '[]'}
 				} : {
 					ctor: '::',
-					_0: _user$project$Mainview_v4$viewSearch(model),
+					_0: A2(
+						_debois$elm_mdl$Material_Options$span,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _user$project$Mainview_v4$viewSearch(model),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_user$project$IconSet$iconHome,
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											_user$project$Msg$Open(_user$project$Model$Startpage)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_user$project$IconSet$iconHome,
-							model.mdl,
+							_debois$elm_mdl$Material_Options$span,
+							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$onClick(
-									_user$project$Msg$Open(_user$project$Model$Startpage)),
+								_0: _elm_lang$html$Html$text(settings.error),
 								_1: {ctor: '[]'}
 							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(settings.error),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
+						_1: {ctor: '[]'}
 					}
 				},
 				drawer: {

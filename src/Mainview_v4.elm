@@ -41,8 +41,10 @@ view model =
                         ]
                     ]
                 else
-                    [ viewSearch model
-                    , iconHome model.mdl [ onClick (Open Startpage)]
+                    [ span []
+                        [ viewSearch model
+                        , iconHome model.mdl [ onClick (Open Startpage)]
+                        ]
                     , span
                         []
                         [ text settings.error
