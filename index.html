@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="mystyle.css">
+    <link rel="XMLHttpRequest" href="//topicexplorer.informatik.uni-halle.de/09sdfjglikqw3bret5cp84vqyolrfiksefgdakyuheas/webapp/ZEIT0614_3_te/JsonServlet?Command=" type="text/json">
+    <title>Topic Explorer Material</title>
+</head>
+<body>
+    <div id="main"></div>
+    <script src="https://cdn.polyfill.io/v2/polyfill.js?features=Event.focusin"></script>
+    <script src="main.js"></script>
+    <script>
+        var node = document.getElementById('main');
+        var app = Elm.TE_elm_v2.embed(node);
+        // Note: if your Elm module is named "MyThing.Root" you
+        // would call "Elm.MyThing.Root.embed(node)" instead.
+    </script>
+</body>
+</html>

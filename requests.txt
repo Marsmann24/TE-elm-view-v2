@@ -1,0 +1,152 @@
+BASEADDRESS = http://topicexplorer.informatik.uni-halle.de/09sdfjglikqw3bret5cp84vqyolrfiksefgdakyuheas/webapp/ZEIT0614_3_te/JsonServlet?
+
+Commands:
+
+Command=bestDocs
+    &TopicId=1
+    &term=Jahrhundert
+    &sorting=RELEVANCE
+{ document :
+    { ? (document_ids) :
+        { document_id : Int
+        , topic_id : Int
+        , document_count : Int
+        , keyword_snippet : String
+        , keyword_title : String
+        , top_topic : List Int
+        , link$url : String
+        , text$time_stamp : Int
+        , text$title : String
+        , text$snipet : String
+        }
+    }
+, document_sorting : List Int
+}
+
+Command=bestDocs
+    &TopicId=27
+    &sorting=RELEVANCE
+{ document :
+    { ? (document_ids) :
+        { document_id : Int
+        , pr_document_given_topic : Float
+        , topic_id : Int
+        , keyword_snippet : String
+        , keyword_title : String
+        , top_topic : List Int
+        , link$url : String
+        , text$time_stamp : Int
+        , text$title : String
+        , text$snipet : String
+        }
+    }
+, document_sorting : List Int
+}
+
+Command=getBestTerms Command=getBestFrames
+{ 0..60 : { items : { 113 : { sorting : List ?}}}
+, 61 :
+    { items : 113 :
+        { sorting : List Int
+        , ? :
+            { item_id : Int
+            , item_name : String
+            , item_count : Int
+            }
+        }
+    }
+}
+
+Command=getTerms
+    &TopicId=1
+    &offset=30
+{ Topic :
+    { <id> :
+        { Top_Terms :
+            List
+                { TermId : Int
+                , relevance : Int
+                }
+        }
+    }
+, Term :
+    { ? :
+        { TERM_ID : Int
+        , TERM_NAME : String
+        , WORDTYPE$WORDTYPE : Int
+        }
+    }
+}
+
+Command=getDoc
+    &DocId=362725
+{ document :
+    { document_id : Int
+    , link$url : String
+    , time$time_stamp : Int
+    , text$title : String
+    , text$fulltext : String
+    , search_test : String
+    , frame_list : { : List ?}
+    , word_list :
+        List
+            { topic_id : Int
+            , position_of_token_in_document :Int
+            , token : String
+            , hirarchical_topic$parent_ids : List Int
+            }
+    }
+}
+
+Command=getTopics
+{ topic :
+    { 0..61 :
+        { topic_id : Int
+        , hirarchical_topic$start : Int
+        , hirarchical_topic$end : Int
+        , hirarchical_topic$depth : Int
+        , hirarchical_topic$cluster_membership : String
+        , color_topic$color : String
+        , top_terms :
+            List
+                { TermId : Int
+                , relevance : Int
+                }
+        }
+    }
+, topic_sorting : List Int
+, term :
+    { 0..:
+        { term_id : Int
+        , term_name : String
+        }
+    }
+, topicBestItemLimit : Int
+}
+
+Command=autocomplete
+    &SearchWord=term
+List
+    { "TERM_ID": Int as String
+    , "TERM_NAME": String
+    , "TOP_TOPIC": List Int
+    }
+
+Command=search
+    &SearchWord=Zeit
+    &SearchStrict=false
+    &sorting=RELEVANCE
+{ DOCUMENT :
+    ? (document_ids) :
+        { DOCUMENT_ID : Int
+        , RELEVANCE : Float
+        , ISIN0 : Int
+        , KEYWORD_TITLE : String
+        , KEYWORD_SNIPPET : String
+        , TOP_TOPIC : List Int
+        , LINK$URL : String
+        , TIME$TIME_STAMP : Int
+        , TEXT$TITLE : String
+        , TEXT$SNIPPET : String
+, DOCUMENT_SORTING : List Int
+}
