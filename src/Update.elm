@@ -8,6 +8,8 @@ import Term exposing (Term)
 import Document exposing (Doc, Document)
 import Request
 
+import Dict
+import ContainerCache
 import Material
 import Dispatch
 import Delay
@@ -387,6 +389,30 @@ update msg model =
             ({ model
                 | slots =  List.append (List.take slotId model.slots) [ Empty width]
             }, cmd)
+        NewTermContainerSlot name slotId containerId msg->
+            let oldSettings = model.settings
+                oldDict = model.termsDict
+            in
+            if Dict.member name oldDict
+            then
+                ({ model
+                    | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name]
+                }, Cmd.none)
+            else
+                (update msg
+                    { model
+                        | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name]
+                        , termsDict = Dict.insert name containerId oldDict
+                    })
+        ManageTermsCache cachemsg ->
+            let (newdata, cmd) =
+                    ContainerCache.update cachemsg model.termsCache
+                oldSettings = model.settings
+            in
+            ({ model
+                | termsCache = newdata
+                , settings = { oldSettings | error = ""}
+            }, Platform.Cmd.map ManageTermsCache cmd )
         Batch msg_ ->
             model ! [ Dispatch.forward msg_ ]
         Mdl msgmdl ->

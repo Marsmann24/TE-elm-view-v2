@@ -1,6 +1,7 @@
 module Mainview_v4 exposing (view)
 
 import Model exposing (..)
+import Term
 import Msg exposing (..)
 import Startpage
 import Showdocumentview
@@ -11,7 +12,9 @@ import Termsview
 import Searchview
 import IconSet exposing (..)
 
+import ContainerCache
 import Array
+import Dict
 import Html exposing (Html, text, h3, p)
 import Html.Events exposing (keyCode)
 import Material.Options exposing (Property, css, cs, center, div, span, onToggle, onClick, onInput, on, dispatch)
@@ -163,6 +166,32 @@ slot model slotId view =
             Documentsview.view { model | docs = docs} (css "width" "300px") slotId name True
         ShowdocumentView document ->
             Showdocumentview.view model document (css "width" "1000px") slotId
+        TermsContainerSlot name ->
+            let inContainer =
+                    (ContainerCache.getCurrPageDataFromContainer model.termsCache (Maybe.withDefault 0 (Dict.get name model.termsDict)))
+            in
+            case inContainer of
+                Just terms ->
+                    Termsview.view { model | terms = terms} (css "width" "300px") slotId name True
+                _ ->
+                    div [ cs "slot"
+                        , css "width" "300px"
+                        , Elevation.e0
+                        , primaryColor
+                        , css "display" "inline-flex"
+                        , css "height" "calc(100% - 5px)"
+                        ]
+                        [ span
+                            [ css "margin" "12px"
+                            ]
+                            [ text "loading..."]
+                        , span [ cs "loading"]
+                            [ Spinner.spinner
+                                [ Spinner.active True
+                                , Spinner.singleColor True
+                                ]
+                            ]
+                        ]
         Empty width ->
             div [ cs "slot"
                 , css "width" width

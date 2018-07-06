@@ -11,7 +11,9 @@ import Material.Icon as Icon
 import Http
 import Html exposing (Html)
 import Array exposing (Array)
+import Dict exposing (Dict)
 import Maybe exposing (Maybe, withDefault)
+import ContainerCache exposing (ContainerModel)
 
 topicNumber : Int
 topicNumber = 30
@@ -26,6 +28,8 @@ type alias Model =
         { terms : Maybe (List Term)
         , docs : Maybe (List Doc)
         }
+    , termsCache : ContainerModel (List Term)
+    , termsDict : Dict String Int
     , mdl : Material.Model
     }
 
@@ -56,5 +60,6 @@ type View
     | DocumentsView String (List Doc)
     | TermsDocumentsView String (List Term) (List Doc)
     | ShowdocumentView Document
+    | TermsContainerSlot String
     | Empty String
     | ErrorSlot

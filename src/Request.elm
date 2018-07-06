@@ -6,6 +6,9 @@ import Topic exposing (Topic)
 import Term exposing (Term)
 import Document exposing (Doc, Document)
 
+import Task
+import ContainerCache
+import Array
 import Http
 import Json.Decode exposing (Decoder)
 
@@ -67,6 +70,41 @@ loadTerms onResult topic offset slotId =
                 ]
     in
     loadData Term.termsDecoder (onResult ("Terms in Topic " ++ (toString topic.id)) slotId) command
+
+termsPageRequest : Topic -> Int -> ContainerCache.Meta (List Term) -> Int -> ContainerCache.Page (List Term)
+termsPageRequest topic slotId meta pagenumber =
+    let command =
+            String.concat
+                [ "getTerms&TopicId="
+                , (toString topic.id)
+                , "&offset="
+                , (toString (pagenumber * meta.itemsPerPage))
+                ]
+        url = baseURL ++ command
+    in
+    ContainerCache.ToLoad meta.identifier
+        (Http.send (ContainerCache.LoadCheckPage meta pagenumber)
+            (Http.get url
+                (meta.decoder)
+            )
+        )
+
+createNewTermsContainer model topic slotId =
+    let containerId = (Array.length model.termsCache.arrayOfContainer)
+    in
+    NewTermContainerSlot ("Terms in Topic " ++ (toString topic.id)) slotId containerId
+        (ManageTermsCache
+            (ContainerCache.CreateNewContainer
+                (ContainerCache.LoadNewContainer ("termslot" ++ (toString slotId))
+                    450
+                    30
+                    1
+                    containerId
+                    Term.termsDecoder
+                    (termsPageRequest topic slotId)
+                )
+            )
+        )
 
 loadBestTerms : Int -> Cmd Msg
 loadBestTerms slotId =

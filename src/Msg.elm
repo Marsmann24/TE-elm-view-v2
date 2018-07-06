@@ -5,6 +5,7 @@ import Term exposing (Term)
 import Topic exposing (Topic)
 import Document exposing (Document, Doc)
 
+import ContainerCache
 import Material
 import Http
 
@@ -32,6 +33,8 @@ type Msg
     | NewSearchDocs String (Result Http.Error (List Doc))
     | ReturnTerms Topic String Int (Result Http.Error (List Term))
     | ReturnDocs Topic String Int (Result Http.Error (List Doc))
+    | NewTermContainerSlot String Int Int Msg
+    | ManageTermsCache (ContainerCache.ContainerModelMsg (List Term))
     | ExecCmd Int String (Cmd Msg)
     | Batch (List Msg)
     | Mdl (Material.Msg Msg)

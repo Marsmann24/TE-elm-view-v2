@@ -51,11 +51,11 @@ view model flex slotId slotName =
             [ cs "slot__content"
             , css "max-width" "400px"
             ]
-            (List.indexedMap (topic2Chip model.mdl model.settings slotId) model.topics)
+            (List.indexedMap (topic2Chip model model.mdl model.settings slotId) model.topics)
         ]
 
-topic2Chip : Material.Model -> Settings -> Int -> Int -> Topic -> Html Msg
-topic2Chip mdl settings slotId id topic =
+topic2Chip : Model -> Material.Model -> Settings -> Int -> Int -> Topic -> Html Msg
+topic2Chip model mdl settings slotId id topic =
     Chip.span
         [ css "width" "calc(100% - 40px)"
         , css "margin" "6px 4px"
@@ -71,13 +71,11 @@ topic2Chip mdl settings slotId id topic =
                 , css "overflow" "hidden"
                 , css "margin-right" "10px"
                 , onClick
-                    (ExecCmd (slotId + 1) "600px"
-                        (Cmd.batch
-                            [ (Request.loadTerms (ReturnTerms topic) topic 0 (slotId + 1))
-                            , (Request.loadBestDocs (ReturnDocs topic) topic Nothing "RELEVANCE" (slotId + 1))
-                            ]
-                        )
-                    )
+                    (Batch
+                        [ (ExecCmd (slotId + 1) "600px"
+                            (Request.loadBestDocs (ReturnDocs topic) topic Nothing "RELEVANCE" (slotId + 1)))
+                        , (Request.createNewTermsContainer model topic (slotId + 1))
+                        ])
                 ]
                 [ span [ css "margin-right" "10px"] [ text (("Topic " ++ (toString topic.id)) ++ ": ")]
                 , text
@@ -93,7 +91,7 @@ topic2Chip mdl settings slotId id topic =
                 ]
             , span
                 [ onClick
-                    (ExecCmd (slotId + 1) "300px" (Request.loadTerms NewTerms topic 0 (slotId + 1)))
+                    (Request.createNewTermsContainer model topic (slotId + 1))
                 , center
                 ]
                 [ iconTerm mdl (iconHighlighted settings (slotId, id))]

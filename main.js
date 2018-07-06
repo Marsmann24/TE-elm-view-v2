@@ -4085,6 +4085,126 @@ var _elm_lang$core$Platform$Task = {ctor: 'Task'};
 var _elm_lang$core$Platform$ProcessId = {ctor: 'ProcessId'};
 var _elm_lang$core$Platform$Router = {ctor: 'Router'};
 
+var _lukewestby$lru_cache$LruCache$toDict = function (cache) {
+	return A2(
+		_elm_lang$core$Dict$map,
+		F2(
+			function (k, v) {
+				return _elm_lang$core$Tuple$first(v);
+			}),
+		cache.items);
+};
+var _lukewestby$lru_cache$LruCache$member = F2(
+	function (key, cache) {
+		return A2(_elm_lang$core$Dict$member, key, cache.items);
+	});
+var _lukewestby$lru_cache$LruCache$size = function (cache) {
+	return _elm_lang$core$Dict$size(cache.items);
+};
+var _lukewestby$lru_cache$LruCache$get = F2(
+	function (key, cache) {
+		var _p0 = A2(_elm_lang$core$Dict$get, key, cache.items);
+		if (_p0.ctor === 'Just') {
+			var _p1 = _p0._0._0;
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					cache,
+					{
+						items: A3(
+							_elm_lang$core$Dict$insert,
+							key,
+							{ctor: '_Tuple2', _0: _p1, _1: cache.counter},
+							cache.items),
+						counter: cache.counter + 1
+					}),
+				_1: _elm_lang$core$Maybe$Just(_p1)
+			};
+		} else {
+			return {ctor: '_Tuple2', _0: cache, _1: _elm_lang$core$Maybe$Nothing};
+		}
+	});
+var _lukewestby$lru_cache$LruCache$empty = function (maximum) {
+	return {items: _elm_lang$core$Dict$empty, maximum: maximum, counter: 0};
+};
+var _lukewestby$lru_cache$LruCache$minimumBy = F2(
+	function (f, ls) {
+		var minBy = F2(
+			function (x, _p2) {
+				var _p3 = _p2;
+				var _p4 = _p3._1;
+				var fx = f(x);
+				return (_elm_lang$core$Native_Utils.cmp(fx, _p4) < 0) ? {ctor: '_Tuple2', _0: x, _1: fx} : {ctor: '_Tuple2', _0: _p3._0, _1: _p4};
+			});
+		var _p5 = ls;
+		if (_p5.ctor === '::') {
+			if (_p5._1.ctor === '[]') {
+				return _elm_lang$core$Maybe$Just(_p5._0);
+			} else {
+				var _p6 = _p5._0;
+				return _elm_lang$core$Maybe$Just(
+					_elm_lang$core$Tuple$first(
+						A3(
+							_elm_lang$core$List$foldl,
+							minBy,
+							{
+								ctor: '_Tuple2',
+								_0: _p6,
+								_1: f(_p6)
+							},
+							_p5._1)));
+			}
+		} else {
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _lukewestby$lru_cache$LruCache$insert = F3(
+	function (key, value, cache) {
+		var nextItems = function () {
+			if (_elm_lang$core$Native_Utils.cmp(
+				_elm_lang$core$Dict$size(cache.items),
+				cache.maximum) > -1) {
+				var keyToRemove = A2(
+					_elm_lang$core$Maybe$map,
+					_elm_lang$core$Tuple$first,
+					A2(
+						_lukewestby$lru_cache$LruCache$minimumBy,
+						function (_p7) {
+							var _p8 = _p7;
+							return _p8._1._1;
+						},
+						_elm_lang$core$Dict$toList(cache.items)));
+				var _p9 = keyToRemove;
+				if (_p9.ctor === 'Just') {
+					return A3(
+						_elm_lang$core$Dict$insert,
+						key,
+						{ctor: '_Tuple2', _0: value, _1: cache.counter},
+						A2(_elm_lang$core$Dict$remove, _p9._0, cache.items));
+				} else {
+					return A3(
+						_elm_lang$core$Dict$insert,
+						key,
+						{ctor: '_Tuple2', _0: value, _1: cache.counter},
+						cache.items);
+				}
+			} else {
+				return A3(
+					_elm_lang$core$Dict$insert,
+					key,
+					{ctor: '_Tuple2', _0: value, _1: cache.counter},
+					cache.items);
+			}
+		}();
+		return _elm_lang$core$Native_Utils.update(
+			cache,
+			{items: nextItems, counter: cache.counter + 1});
+	});
+var _lukewestby$lru_cache$LruCache$LruCache = F3(
+	function (a, b, c) {
+		return {items: a, maximum: b, counter: c};
+	});
+
 var _elm_lang$http$Native_Http = function() {
 
 
@@ -20556,6 +20676,484 @@ var _elm_lang$dom$Dom_Scroll$toTop = function (id) {
 	return A2(_elm_lang$dom$Dom_Scroll$toY, id, 0);
 };
 
+var _user$project$ContainerCache$fillcache = F3(
+	function (meta, index, page) {
+		var _p0 = page;
+		if (_p0.ctor === 'ToLoad') {
+			return (_elm_lang$core$Native_Utils.cmp(index, meta.windowSize) < 1) ? _p0._1 : _elm_lang$core$Platform_Cmd$none;
+		} else {
+			return _elm_lang$core$Platform_Cmd$none;
+		}
+	});
+var _user$project$ContainerCache$loadpage = F2(
+	function (targetpage, targetcontainer) {
+		var _p1 = targetpage;
+		if (_p1.ctor === 'ToLoad') {
+			return {ctor: '_Tuple2', _0: targetcontainer, _1: _p1._1};
+		} else {
+			return {ctor: '_Tuple2', _0: targetcontainer, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$ContainerCache$initializenewContainer = F2(
+	function (meta, requestmaker) {
+		return A2(
+			_elm_lang$core$Array$initialize,
+			meta.numOfPages,
+			function (n) {
+				if (_elm_lang$core$Native_Utils.cmp(n, meta.windowSize) > 0) {
+					var metanew = _elm_lang$core$Native_Utils.update(
+						meta,
+						{currPage: n - meta.windowSize});
+					return A2(requestmaker, metanew, n);
+				} else {
+					return A2(requestmaker, meta, n);
+				}
+			});
+	});
+var _user$project$ContainerCache$getpagetoload = F2(
+	function (container, msg) {
+		var _p2 = msg;
+		if (_p2.ctor === 'NextPage') {
+			return (container.meta.currPage + container.meta.windowSize) + 1;
+		} else {
+			return (container.meta.currPage - container.meta.windowSize) - 1;
+		}
+	});
+var _user$project$ContainerCache$createMetadata = F6(
+	function (name, numOfElem, ipp, cs, iden, decoder) {
+		return {
+			name: name,
+			numOfItemsInContainer: numOfElem,
+			itemsPerPage: ipp,
+			numOfPages: _elm_lang$core$Basics$ceiling(
+				_elm_lang$core$Basics$toFloat(numOfElem) / _elm_lang$core$Basics$toFloat(ipp)),
+			windowSize: cs,
+			currPage: 0,
+			identifier: iden,
+			decoder: decoder
+		};
+	});
+var _user$project$ContainerCache$getCurrIndex = function (conmod) {
+	return _elm_lang$core$Array$length(conmod.arrayOfContainer) - 1;
+};
+var _user$project$ContainerCache$ContainerModel = F4(
+	function (a, b, c, d) {
+		return {arrayOfContainer: a, cache: b, newcontainer: c, log: d};
+	});
+var _user$project$ContainerCache$Container = F4(
+	function (a, b, c, d) {
+		return {meta: a, data: b, requestmaker: c, log: d};
+	});
+var _user$project$ContainerCache$Meta = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {name: a, numOfItemsInContainer: b, itemsPerPage: c, numOfPages: d, identifier: e, windowSize: f, currPage: g, decoder: h};
+	});
+var _user$project$ContainerCache$HandleError = function (a) {
+	return {ctor: 'HandleError', _0: a};
+};
+var _user$project$ContainerCache$requestmaker = F2(
+	function (meta, pagenumtodelete) {
+		return _user$project$ContainerCache$HandleError('Default pagerequest');
+	});
+var _user$project$ContainerCache$ToLoad = F2(
+	function (a, b) {
+		return {ctor: 'ToLoad', _0: a, _1: b};
+	});
+var _user$project$ContainerCache$Loaded = function (a) {
+	return {ctor: 'Loaded', _0: a};
+};
+var _user$project$ContainerCache$LoadNewPage = F3(
+	function (a, b, c) {
+		return {ctor: 'LoadNewPage', _0: a, _1: b, _2: c};
+	});
+var _user$project$ContainerCache$PageUpdate = F2(
+	function (a, b) {
+		return {ctor: 'PageUpdate', _0: a, _1: b};
+	});
+var _user$project$ContainerCache$CreateNewContainer = function (a) {
+	return {ctor: 'CreateNewContainer', _0: a};
+};
+var _user$project$ContainerCache$UpdatePage = F2(
+	function (a, b) {
+		return {ctor: 'UpdatePage', _0: a, _1: b};
+	});
+var _user$project$ContainerCache$addpagetorequest = F2(
+	function (msg, page) {
+		return A2(_user$project$ContainerCache$UpdatePage, msg, page);
+	});
+var _user$project$ContainerCache$LoadCheckPage = F3(
+	function (a, b, c) {
+		return {ctor: 'LoadCheckPage', _0: a, _1: b, _2: c};
+	});
+var _user$project$ContainerCache$LoadNewContainer = F7(
+	function (a, b, c, d, e, f, g) {
+		return {ctor: 'LoadNewContainer', _0: a, _1: b, _2: c, _3: d, _4: e, _5: f, _6: g};
+	});
+var _user$project$ContainerCache$PrevPage = {ctor: 'PrevPage'};
+var _user$project$ContainerCache$NextPage = {ctor: 'NextPage'};
+var _user$project$ContainerCache$Container_Error = function (a) {
+	return {ctor: 'Container_Error', _0: a};
+};
+var _user$project$ContainerCache$ContainerError = function (a) {
+	return {ctor: 'ContainerError', _0: a};
+};
+var _user$project$ContainerCache$ManageContainer_Error = function (a) {
+	return {ctor: 'ManageContainer_Error', _0: a};
+};
+var _user$project$ContainerCache$NoError = {ctor: 'NoError'};
+var _user$project$ContainerCache$createContainer = F3(
+	function (meta, data, req) {
+		return {meta: meta, data: data, requestmaker: req, log: _user$project$ContainerCache$NoError};
+	});
+var _user$project$ContainerCache$defaultContainer = A3(
+	_user$project$ContainerCache$createContainer,
+	A6(
+		_user$project$ContainerCache$createMetadata,
+		'DefaultContainer - Error',
+		-1,
+		-1,
+		-1,
+		-1,
+		_elm_lang$core$Json_Decode$fail('DefaultContainer - Decoder Error')),
+	_elm_lang$core$Array$empty,
+	_user$project$ContainerCache$requestmaker);
+var _user$project$ContainerCache$getCurrPageDataFromContainer = F2(
+	function (conmod, index) {
+		var targetcontainer = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$defaultContainer,
+			A2(_elm_lang$core$Array$get, index, conmod.arrayOfContainer));
+		var _p3 = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$HandleError(''),
+			A2(_elm_lang$core$Array$get, targetcontainer.meta.currPage, targetcontainer.data));
+		if (_p3.ctor === 'Loaded') {
+			return _elm_lang$core$Maybe$Just(_p3._0);
+		} else {
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _user$project$ContainerCache$updatecontainer = F2(
+	function (msg, model) {
+		var _p4 = msg;
+		switch (_p4.ctor) {
+			case 'LoadNewContainer':
+				var _p5 = _p4._6;
+				var newMeta = A6(_user$project$ContainerCache$createMetadata, _p4._0, _p4._1, _p4._2, _p4._3, _p4._4, _p4._5);
+				var loadedContainer = A2(_user$project$ContainerCache$initializenewContainer, newMeta, _p5);
+				return {
+					ctor: '_Tuple2',
+					_0: A3(_user$project$ContainerCache$createContainer, newMeta, loadedContainer, _p5),
+					_1: _elm_lang$core$Platform_Cmd$batch(
+						_elm_lang$core$Array$toList(
+							A2(
+								_elm_lang$core$Array$indexedMap,
+								_user$project$ContainerCache$fillcache(newMeta),
+								loadedContainer)))
+				};
+			case 'LoadCheckPage':
+				var _p6 = _p4._2;
+				if (_p6.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: A3(
+							_user$project$ContainerCache$createContainer,
+							_p4._0,
+							A3(
+								_elm_lang$core$Array$set,
+								_p4._1,
+								_user$project$ContainerCache$Loaded(_p6._0),
+								model.data),
+							model.requestmaker),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								log: _user$project$ContainerCache$ContainerError(_p6._0)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$ContainerCache$switchpage = F3(
+	function (factor, model, maybepage) {
+		var pagenumtoload = model.meta.currPage + ((model.meta.windowSize + 1) * factor);
+		var nextpage = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$HandleError('switchpage nextpage'),
+			A2(_elm_lang$core$Array$get, pagenumtoload, model.data));
+		var pagenumtodelete = model.meta.currPage - (model.meta.windowSize * factor);
+		var deletedpage = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$HandleError('switchpage deletedpage'),
+			A2(_elm_lang$core$Array$get, pagenumtodelete, model.data));
+		var metahelp = model.meta;
+		var newmeta = _elm_lang$core$Native_Utils.update(
+			metahelp,
+			{currPage: metahelp.currPage + (1 * factor)});
+		var newdeletemeta = _elm_lang$core$Native_Utils.update(
+			metahelp,
+			{currPage: pagenumtodelete + (metahelp.windowSize * factor)});
+		var pagetodelete = A2(model.requestmaker, newdeletemeta, pagenumtodelete);
+		var _p7 = nextpage;
+		if (_p7.ctor === 'ToLoad') {
+			var _p8 = maybepage;
+			if (_p8.ctor === 'Just') {
+				return {
+					ctor: '_Tuple3',
+					_0: A3(
+						_user$project$ContainerCache$createContainer,
+						newmeta,
+						A3(
+							_elm_lang$core$Array$set,
+							pagenumtoload,
+							_p8._0,
+							A3(_elm_lang$core$Array$set, pagenumtodelete, pagetodelete, model.data)),
+						model.requestmaker),
+					_1: _elm_lang$core$Platform_Cmd$none,
+					_2: {ctor: '_Tuple2', _0: pagenumtodelete, _1: deletedpage}
+				};
+			} else {
+				return {
+					ctor: '_Tuple3',
+					_0: A3(
+						_user$project$ContainerCache$createContainer,
+						newmeta,
+						A3(_elm_lang$core$Array$set, pagenumtodelete, pagetodelete, model.data),
+						model.requestmaker),
+					_1: _p7._1,
+					_2: {ctor: '_Tuple2', _0: pagenumtodelete, _1: deletedpage}
+				};
+			}
+		} else {
+			return {
+				ctor: '_Tuple3',
+				_0: A3(_user$project$ContainerCache$createContainer, newmeta, model.data, model.requestmaker),
+				_1: _elm_lang$core$Platform_Cmd$none,
+				_2: {
+					ctor: '_Tuple2',
+					_0: -1,
+					_1: _user$project$ContainerCache$HandleError('switchpage not ToLoad')
+				}
+			};
+		}
+	});
+var _user$project$ContainerCache$updatepage = F2(
+	function (msg, model) {
+		var _p9 = msg;
+		if (_p9.ctor === 'UpdatePage') {
+			if (_p9._0.ctor === 'NextPage') {
+				return (_elm_lang$core$Native_Utils.cmp(model.meta.currPage + 1, model.meta.numOfPages) < 0) ? A3(_user$project$ContainerCache$switchpage, 1, model, _p9._1) : {
+					ctor: '_Tuple3',
+					_0: model,
+					_1: _elm_lang$core$Platform_Cmd$none,
+					_2: {
+						ctor: '_Tuple2',
+						_0: -1,
+						_1: _user$project$ContainerCache$HandleError('updatepage NextPage')
+					}
+				};
+			} else {
+				return (_elm_lang$core$Native_Utils.cmp(0, model.meta.currPage) < 0) ? A3(_user$project$ContainerCache$switchpage, -1, model, _p9._1) : {
+					ctor: '_Tuple3',
+					_0: model,
+					_1: _elm_lang$core$Platform_Cmd$none,
+					_2: {
+						ctor: '_Tuple2',
+						_0: -1,
+						_1: _user$project$ContainerCache$HandleError('updatepage PrevPage')
+					}
+				};
+			}
+		} else {
+			return {
+				ctor: '_Tuple3',
+				_0: model,
+				_1: _elm_lang$core$Platform_Cmd$none,
+				_2: {
+					ctor: '_Tuple2',
+					_0: -1,
+					_1: _user$project$ContainerCache$HandleError('updatepage No UpdatePage')
+				}
+			};
+		}
+	});
+var _user$project$ContainerCache$newContainerModel = F3(
+	function (array, cachesize, newcontainer) {
+		return {
+			arrayOfContainer: array,
+			cache: _lukewestby$lru_cache$LruCache$empty(cachesize),
+			newcontainer: newcontainer,
+			log: _user$project$ContainerCache$NoError
+		};
+	});
+var _user$project$ContainerCache$update = F2(
+	function (msg, model) {
+		var _p10 = msg;
+		switch (_p10.ctor) {
+			case 'CreateNewContainer':
+				var _p11 = A2(_user$project$ContainerCache$updatecontainer, _p10._0, model.newcontainer);
+				var container = _p11._0;
+				var command = _p11._1;
+				var _p12 = A2(
+					_elm_lang$core$Maybe$withDefault,
+					_user$project$ContainerCache$HandleError('CreateNewContainer'),
+					A2(_elm_lang$core$Array$get, 0, container.data));
+				if (_p12.ctor === 'Loaded') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								arrayOfContainer: A2(_elm_lang$core$Array$push, container, model.arrayOfContainer)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{newcontainer: container}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$ContainerCache$CreateNewContainer, command)
+					};
+				}
+			case 'PageUpdate':
+				var _p18 = _p10._1;
+				var _p17 = _p10._0;
+				var targetcontainer = A2(
+					_elm_lang$core$Maybe$withDefault,
+					_user$project$ContainerCache$defaultContainer,
+					A2(_elm_lang$core$Array$get, _p17, model.arrayOfContainer));
+				var pagetoload = A2(_user$project$ContainerCache$getpagetoload, targetcontainer, _p18);
+				var _p13 = A2(
+					_lukewestby$lru_cache$LruCache$get,
+					{ctor: '_Tuple2', _0: _p17, _1: pagetoload},
+					model.cache);
+				var newcache = _p13._0;
+				var maybepageincache = _p13._1;
+				var updateMsg = A2(_user$project$ContainerCache$addpagetorequest, _p18, maybepageincache);
+				var _p14 = A2(_user$project$ContainerCache$updatepage, updateMsg, targetcontainer);
+				var container = _p14._0;
+				var command = _p14._1;
+				var pageforcachenum = _p14._2._0;
+				var pageforcache = _p14._2._1;
+				var newcontainerarray = (_elm_lang$core$Native_Utils.cmp(pageforcachenum, 0) > -1) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							arrayOfContainer: A3(_elm_lang$core$Array$set, _p17, container, model.arrayOfContainer),
+							cache: A3(
+								_lukewestby$lru_cache$LruCache$insert,
+								{ctor: '_Tuple2', _0: _p17, _1: pageforcachenum},
+								pageforcache,
+								newcache)
+						}),
+					_1: A2(
+						_elm_lang$core$Platform_Cmd$map,
+						A2(_user$project$ContainerCache$LoadNewPage, _p17, command),
+						command)
+				} : {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							arrayOfContainer: A3(_elm_lang$core$Array$set, _p17, container, model.arrayOfContainer)
+						}),
+					_1: A2(
+						_elm_lang$core$Platform_Cmd$map,
+						A2(_user$project$ContainerCache$LoadNewPage, _p17, command),
+						command)
+				};
+				var nextpagenum = _elm_lang$core$Native_Utils.eq(_p18, _user$project$ContainerCache$NextPage) ? (targetcontainer.meta.currPage + 1) : (targetcontainer.meta.currPage - 1);
+				var targetpage = A2(
+					_elm_lang$core$Maybe$withDefault,
+					_user$project$ContainerCache$HandleError('PageUpdate targetpage'),
+					A2(_elm_lang$core$Array$get, nextpagenum, targetcontainer.data));
+				var _p15 = targetpage;
+				if (_p15.ctor === 'ToLoad') {
+					if (_elm_lang$core$Native_Utils.cmp(targetcontainer.meta.windowSize, 0) > 0) {
+						var _p16 = A2(_user$project$ContainerCache$loadpage, targetpage, targetcontainer);
+						var newcontainer = _p16._0;
+						var reloadcommand = _p16._1;
+						return (_elm_lang$core$Native_Utils.cmp(pageforcachenum, 0) > -1) ? {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									arrayOfContainer: A3(_elm_lang$core$Array$set, _p17, newcontainer, model.arrayOfContainer),
+									cache: A3(
+										_lukewestby$lru_cache$LruCache$insert,
+										{ctor: '_Tuple2', _0: _p17, _1: pageforcachenum},
+										pageforcache,
+										newcache)
+								}),
+							_1: A2(
+								_elm_lang$core$Platform_Cmd$map,
+								A2(_user$project$ContainerCache$LoadNewPage, _p17, reloadcommand),
+								reloadcommand)
+						} : {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									arrayOfContainer: A3(_elm_lang$core$Array$set, _p17, newcontainer, model.arrayOfContainer)
+								}),
+							_1: A2(
+								_elm_lang$core$Platform_Cmd$map,
+								A2(_user$project$ContainerCache$LoadNewPage, _p17, reloadcommand),
+								reloadcommand)
+						};
+					} else {
+						return newcontainerarray;
+					}
+				} else {
+					return newcontainerarray;
+				}
+			default:
+				var _p21 = _p10._0;
+				var _p20 = _p10._1;
+				var _p19 = A2(
+					_user$project$ContainerCache$updatecontainer,
+					_p10._2,
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						_user$project$ContainerCache$defaultContainer,
+						A2(_elm_lang$core$Array$get, _p21, model.arrayOfContainer)));
+				var container = _p19._0;
+				var cmdnone = _p19._1;
+				return _elm_lang$core$Native_Utils.eq(container.log, _user$project$ContainerCache$NoError) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							arrayOfContainer: A3(_elm_lang$core$Array$set, _p21, container, model.arrayOfContainer),
+							log: _user$project$ContainerCache$NoError
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				} : {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							log: _user$project$ContainerCache$Container_Error(container.log)
+						}),
+					_1: A2(
+						_elm_lang$core$Platform_Cmd$map,
+						A2(_user$project$ContainerCache$LoadNewPage, _p21, _p20),
+						_p20)
+				};
+		}
+	});
+
 var _user$project$Decoderhelper$map12 = function ($function) {
 	return function (decoder0) {
 		return function (decoder1) {
@@ -21124,9 +21722,9 @@ var _user$project$Document$documentDecoder = A2(
 			_elm_lang$core$Json_Decode$list(_user$project$Document$tokenDecoder))));
 
 var _user$project$Model$topicNumber = 30;
-var _user$project$Model$Model = F7(
-	function (a, b, c, d, e, f, g) {
-		return {topics: a, docs: b, terms: c, settings: d, slots: e, answer: f, mdl: g};
+var _user$project$Model$Model = F9(
+	function (a, b, c, d, e, f, g, h, i) {
+		return {topics: a, docs: b, terms: c, settings: d, slots: e, answer: f, termsCache: g, termsDict: h, mdl: i};
 	});
 var _user$project$Model$Settings = F7(
 	function (a, b, c, d, e, f, g) {
@@ -21147,6 +21745,9 @@ var _user$project$Model$Startpage = {ctor: 'Startpage'};
 var _user$project$Model$ErrorSlot = {ctor: 'ErrorSlot'};
 var _user$project$Model$Empty = function (a) {
 	return {ctor: 'Empty', _0: a};
+};
+var _user$project$Model$TermsContainerSlot = function (a) {
+	return {ctor: 'TermsContainerSlot', _0: a};
 };
 var _user$project$Model$ShowdocumentView = function (a) {
 	return {ctor: 'ShowdocumentView', _0: a};
@@ -21178,6 +21779,13 @@ var _user$project$Msg$Batch = function (a) {
 var _user$project$Msg$ExecCmd = F3(
 	function (a, b, c) {
 		return {ctor: 'ExecCmd', _0: a, _1: b, _2: c};
+	});
+var _user$project$Msg$ManageTermsCache = function (a) {
+	return {ctor: 'ManageTermsCache', _0: a};
+};
+var _user$project$Msg$NewTermContainerSlot = F4(
+	function (a, b, c, d) {
+		return {ctor: 'NewTermContainerSlot', _0: a, _1: b, _2: c, _3: d};
 	});
 var _user$project$Msg$ReturnDocs = F4(
 	function (a, b, c, d) {
@@ -21461,6 +22069,61 @@ var _user$project$Request$loadSearchDocs = F3(
 			_user$project$Document$bestDocsDecoder,
 			_user$project$Msg$NewSearchDocs(name),
 			command);
+	});
+var _user$project$Request$termsPageRequest = F4(
+	function (topic, slotId, meta, pagenumber) {
+		var command = _elm_lang$core$String$concat(
+			{
+				ctor: '::',
+				_0: 'getTerms&TopicId=',
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$core$Basics$toString(topic.id),
+					_1: {
+						ctor: '::',
+						_0: '&offset=',
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$core$Basics$toString(pagenumber * meta.itemsPerPage),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			});
+		var url = A2(_elm_lang$core$Basics_ops['++'], _user$project$Request$baseURL, command);
+		return A2(
+			_user$project$ContainerCache$ToLoad,
+			meta.identifier,
+			A2(
+				_elm_lang$http$Http$send,
+				A2(_user$project$ContainerCache$LoadCheckPage, meta, pagenumber),
+				A2(_elm_lang$http$Http$get, url, meta.decoder)));
+	});
+var _user$project$Request$createNewTermsContainer = F3(
+	function (model, topic, slotId) {
+		var containerId = _elm_lang$core$Array$length(model.termsCache.arrayOfContainer);
+		return A4(
+			_user$project$Msg$NewTermContainerSlot,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'Terms in Topic ',
+				_elm_lang$core$Basics$toString(topic.id)),
+			slotId,
+			containerId,
+			_user$project$Msg$ManageTermsCache(
+				_user$project$ContainerCache$CreateNewContainer(
+					A7(
+						_user$project$ContainerCache$LoadNewContainer,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'termslot',
+							_elm_lang$core$Basics$toString(slotId)),
+						450,
+						30,
+						1,
+						containerId,
+						_user$project$Term$termsDecoder,
+						A2(_user$project$Request$termsPageRequest, topic, slotId)))));
 	});
 
 var _user$project$IconSet$generalBackgroundColor = _debois$elm_mdl$Material_Options$cs('generalBackgroundColor');
@@ -22082,6 +22745,8 @@ var _user$project$Init$init = {
 			_1: {ctor: '[]'}
 		},
 		answer: {terms: _elm_lang$core$Maybe$Nothing, docs: _elm_lang$core$Maybe$Nothing},
+		termsCache: A3(_user$project$ContainerCache$newContainerModel, _elm_lang$core$Array$empty, 10, _user$project$ContainerCache$defaultContainer),
+		termsDict: _elm_lang$core$Dict$empty,
 		mdl: _debois$elm_mdl$Material$model
 	},
 	_1: _elm_lang$core$Platform_Cmd$batch(
@@ -22570,8 +23235,8 @@ var _user$project$Showdocumentview$view = F4(
 			});
 	});
 
-var _user$project$Topicsview$topic2Chip = F5(
-	function (mdl, settings, slotId, id, topic) {
+var _user$project$Topicsview$topic2Chip = F6(
+	function (model, mdl, settings, slotId, id, topic) {
 		return A2(
 			_debois$elm_mdl$Material_Chip$span,
 			{
@@ -22620,31 +23285,26 @@ var _user$project$Topicsview$topic2Chip = F5(
 										_1: {
 											ctor: '::',
 											_0: _debois$elm_mdl$Material_Options$onClick(
-												A3(
-													_user$project$Msg$ExecCmd,
-													slotId + 1,
-													'600px',
-													_elm_lang$core$Platform_Cmd$batch(
-														{
-															ctor: '::',
-															_0: A4(
-																_user$project$Request$loadTerms,
-																_user$project$Msg$ReturnTerms(topic),
+												_user$project$Msg$Batch(
+													{
+														ctor: '::',
+														_0: A3(
+															_user$project$Msg$ExecCmd,
+															slotId + 1,
+															'600px',
+															A5(
+																_user$project$Request$loadBestDocs,
+																_user$project$Msg$ReturnDocs(topic),
 																topic,
-																0,
-																slotId + 1),
-															_1: {
-																ctor: '::',
-																_0: A5(
-																	_user$project$Request$loadBestDocs,
-																	_user$project$Msg$ReturnDocs(topic),
-																	topic,
-																	_elm_lang$core$Maybe$Nothing,
-																	'RELEVANCE',
-																	slotId + 1),
-																_1: {ctor: '[]'}
-															}
-														}))),
+																_elm_lang$core$Maybe$Nothing,
+																'RELEVANCE',
+																slotId + 1)),
+														_1: {
+															ctor: '::',
+															_0: A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1),
+															_1: {ctor: '[]'}
+														}
+													})),
 											_1: {ctor: '[]'}
 										}
 									}
@@ -22701,11 +23361,7 @@ var _user$project$Topicsview$topic2Chip = F5(
 								{
 									ctor: '::',
 									_0: _debois$elm_mdl$Material_Options$onClick(
-										A3(
-											_user$project$Msg$ExecCmd,
-											slotId + 1,
-											'300px',
-											A4(_user$project$Request$loadTerms, _user$project$Msg$NewTerms, topic, 0, slotId + 1))),
+										A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1)),
 									_1: {
 										ctor: '::',
 										_0: _debois$elm_mdl$Material_Options$center,
@@ -22890,7 +23546,7 @@ var _user$project$Topicsview$view = F4(
 						},
 						A2(
 							_elm_lang$core$List$indexedMap,
-							A3(_user$project$Topicsview$topic2Chip, model.mdl, model.settings, slotId),
+							A4(_user$project$Topicsview$topic2Chip, model, model.mdl, model.settings, slotId),
 							model.topics)),
 					_1: {ctor: '[]'}
 				}
@@ -23036,6 +23692,33 @@ var _user$project$Termsview$terms2ListItem = F5(
 	});
 var _user$project$Termsview$view = F5(
 	function (model, flex, slotId, slotName, withHead) {
+		var thisCM = model.termsCache;
+		var containerId = A2(
+			_elm_lang$core$Maybe$withDefault,
+			0,
+			A2(_elm_lang$core$Dict$get, slotName, model.termsDict));
+		var thisCache = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$defaultContainer,
+			A2(_elm_lang$core$Array$get, containerId, thisCM.arrayOfContainer));
+		var thisMeta = thisCache.meta;
+		var thisCurrPage = thisMeta.currPage;
+		var nextMeta = _elm_lang$core$Native_Utils.update(
+			thisMeta,
+			{currPage: thisCurrPage + 1});
+		var nextCache = _elm_lang$core$Native_Utils.update(
+			thisCache,
+			{meta: nextMeta});
+		var nextCM = _elm_lang$core$Native_Utils.update(
+			thisCM,
+			{
+				arrayOfContainer: _elm_lang$core$Array$fromList(
+					{
+						ctor: '::',
+						_0: nextCache,
+						_1: {ctor: '[]'}
+					})
+			});
 		return A2(
 			_debois$elm_mdl$Material_Options$div,
 			{
@@ -23166,10 +23849,127 @@ var _user$project$Termsview$view = F5(
 								_1: {ctor: '[]'}
 							}
 						},
-						A2(
-							_elm_lang$core$List$indexedMap,
-							A3(_user$project$Termsview$terms2ListItem, model.mdl, model.settings, slotId),
-							model.terms)),
+						_elm_lang$core$List$concat(
+							{
+								ctor: '::',
+								_0: _elm_lang$core$Native_Utils.eq(
+									A2(
+										_elm_lang$core$Maybe$withDefault,
+										_user$project$ContainerCache$defaultContainer,
+										A2(_elm_lang$core$Array$get, containerId, model.termsCache.arrayOfContainer)).meta.currPage,
+									0) ? {ctor: '[]'} : {
+									ctor: '::',
+									_0: A2(
+										_debois$elm_mdl$Material_List$li,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(
+												_debois$elm_mdl$Material_List$content,
+												{
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
+														_1: {
+															ctor: '::',
+															_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
+															_1: {
+																ctor: '::',
+																_0: _debois$elm_mdl$Material_Options$cs('item'),
+																_1: {
+																	ctor: '::',
+																	_0: _debois$elm_mdl$Material_Options$center,
+																	_1: {
+																		ctor: '::',
+																		_0: _debois$elm_mdl$Material_Options$onClick(
+																			_user$project$Msg$ManageTermsCache(
+																				A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$PrevPage))),
+																		_1: {ctor: '[]'}
+																	}
+																}
+															}
+														}
+													}
+												},
+												{
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Icon$i('expand_less'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								},
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$core$List$indexedMap,
+										A3(_user$project$Termsview$terms2ListItem, model.mdl, model.settings, slotId),
+										model.terms),
+									_1: {
+										ctor: '::',
+										_0: function () {
+											var _p0 = A2(_user$project$ContainerCache$getCurrPageDataFromContainer, nextCM, containerId);
+											if (_p0.ctor === 'Just') {
+												if (_p0._0.ctor === '[]') {
+													return {ctor: '[]'};
+												} else {
+													return {
+														ctor: '::',
+														_0: A2(
+															_debois$elm_mdl$Material_List$li,
+															{ctor: '[]'},
+															{
+																ctor: '::',
+																_0: A2(
+																	_debois$elm_mdl$Material_List$content,
+																	{
+																		ctor: '::',
+																		_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
+																		_1: {
+																			ctor: '::',
+																			_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
+																			_1: {
+																				ctor: '::',
+																				_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
+																				_1: {
+																					ctor: '::',
+																					_0: _debois$elm_mdl$Material_Options$cs('item'),
+																					_1: {
+																						ctor: '::',
+																						_0: _debois$elm_mdl$Material_Options$center,
+																						_1: {
+																							ctor: '::',
+																							_0: _debois$elm_mdl$Material_Options$onClick(
+																								_user$project$Msg$ManageTermsCache(
+																									A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$NextPage))),
+																							_1: {ctor: '[]'}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	},
+																	{
+																		ctor: '::',
+																		_0: _debois$elm_mdl$Material_Icon$i('expand_more'),
+																		_1: {ctor: '[]'}
+																	}),
+																_1: {ctor: '[]'}
+															}),
+														_1: {ctor: '[]'}
+													};
+												}
+											} else {
+												return {ctor: '[]'};
+											}
+										}(),
+										_1: {ctor: '[]'}
+									}
+								}
+							})),
 					_1: {ctor: '[]'}
 				}
 			});
@@ -23562,6 +24362,95 @@ var _user$project$Mainview_v4$slot = F3(
 					_p0._0,
 					A2(_debois$elm_mdl$Material_Options$css, 'width', '1000px'),
 					slotId);
+			case 'TermsContainerSlot':
+				var _p2 = _p0._0;
+				var inContainer = A2(
+					_user$project$ContainerCache$getCurrPageDataFromContainer,
+					model.termsCache,
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						0,
+						A2(_elm_lang$core$Dict$get, _p2, model.termsDict)));
+				var _p1 = inContainer;
+				if (_p1.ctor === 'Just') {
+					return A5(
+						_user$project$Termsview$view,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{terms: _p1._0}),
+						A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+						slotId,
+						_p2,
+						true);
+				} else {
+					return A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('slot'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Elevation$e0,
+									_1: {
+										ctor: '::',
+										_0: _user$project$IconSet$primaryColor,
+										_1: {
+											ctor: '::',
+											_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+											_1: {
+												ctor: '::',
+												_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 5px)'),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '12px'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('loading...'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Options$span,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('loading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Spinner$spinner(
+											{
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Spinner$active(true),
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Spinner$singleColor(true),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						});
+				}
 			case 'Empty':
 				return A2(
 					_debois$elm_mdl$Material_Options$div,
@@ -23646,8 +24535,8 @@ var _user$project$Mainview_v4$slot = F3(
 		}
 	});
 var _user$project$Mainview_v4$viewBody = function (model) {
-	var _p1 = model.settings.frame;
-	if (_p1.ctor === 'Startpage') {
+	var _p3 = model.settings.frame;
+	if (_p3.ctor === 'Startpage') {
 		return _user$project$Startpage$view(model.settings);
 	} else {
 		return A2(
@@ -24226,96 +25115,126 @@ var _user$project$Update$scroll2Right = A2(
 	_elm_lang$dom$Dom_Scroll$toRight('board'));
 var _user$project$Update$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Open':
-				var _p1 = _p0._0;
-				var newSlots = _elm_lang$core$Native_Utils.eq(_p1, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$List$length(model.topics),
-					_user$project$Model$topicNumber) < 0) ? {
-					ctor: '::',
-					_0: _user$project$Model$Empty('300px'),
-					_1: {ctor: '[]'}
-				} : {
-					ctor: '::',
-					_0: A2(_user$project$Model$TopicsView, 'Topics', model.topics),
-					_1: {ctor: '[]'}
-				}) : model.slots;
-				var settings = model.settings;
-				var cmd = _elm_lang$core$Native_Utils.eq(_p1, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$List$length(model.topics),
-					_user$project$Model$topicNumber) < 0) ? _user$project$Request$loadTopics(0) : _elm_lang$core$Platform_Cmd$none) : _elm_lang$core$Platform_Cmd$none;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							slots: newSlots,
-							settings: _elm_lang$core$Native_Utils.update(
-								settings,
-								{frame: _p1})
-						}),
-					_1: cmd
-				};
-			case 'Toggle':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{settings: _p0._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Search':
-				var _p2 = _p0._0;
-				var oldSettings = model.settings;
-				return (!_elm_lang$core$Native_Utils.eq(_p2, '')) ? {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							settings: _elm_lang$core$Native_Utils.update(
-								oldSettings,
-								{
-									search: !_elm_lang$core$Native_Utils.eq(_p2, ''),
-									search4: _p2
-								})
-						}),
-					_1: _user$project$Request$loadSearchTerms(_p2)
-				} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'AdvancedSearch':
-				var searchterm = _elm_lang$core$String$toLower(_p0._0);
-				var oldSettings = model.settings;
-				if (!_elm_lang$core$Native_Utils.eq(searchterm, '')) {
-					var request = function () {
-						if (A2(_elm_lang$core$String$startsWith, 'topic:', searchterm)) {
-							var search4topic = A2(_elm_lang$core$String$dropLeft, 6, searchterm);
-							return _user$project$Request$loadSearchTopics(search4topic);
-						} else {
-							if (A2(_elm_lang$core$String$startsWith, 'term:', searchterm)) {
-								var search4term = A2(_elm_lang$core$String$dropLeft, 5, searchterm);
-								return _user$project$Request$loadSearchTerms(search4term);
+		update:
+		while (true) {
+			var _p0 = msg;
+			switch (_p0.ctor) {
+				case 'Open':
+					var _p1 = _p0._0;
+					var newSlots = _elm_lang$core$Native_Utils.eq(_p1, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$List$length(model.topics),
+						_user$project$Model$topicNumber) < 0) ? {
+						ctor: '::',
+						_0: _user$project$Model$Empty('300px'),
+						_1: {ctor: '[]'}
+					} : {
+						ctor: '::',
+						_0: A2(_user$project$Model$TopicsView, 'Topics', model.topics),
+						_1: {ctor: '[]'}
+					}) : model.slots;
+					var settings = model.settings;
+					var cmd = _elm_lang$core$Native_Utils.eq(_p1, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$List$length(model.topics),
+						_user$project$Model$topicNumber) < 0) ? _user$project$Request$loadTopics(0) : _elm_lang$core$Platform_Cmd$none) : _elm_lang$core$Platform_Cmd$none;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: newSlots,
+								settings: _elm_lang$core$Native_Utils.update(
+									settings,
+									{frame: _p1})
+							}),
+						_1: cmd
+					};
+				case 'Toggle':
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{settings: _p0._0}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'Search':
+					var _p2 = _p0._0;
+					var oldSettings = model.settings;
+					return (!_elm_lang$core$Native_Utils.eq(_p2, '')) ? {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{
+										search: !_elm_lang$core$Native_Utils.eq(_p2, ''),
+										search4: _p2
+									})
+							}),
+						_1: _user$project$Request$loadSearchTerms(_p2)
+					} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				case 'AdvancedSearch':
+					var searchterm = _elm_lang$core$String$toLower(_p0._0);
+					var oldSettings = model.settings;
+					if (!_elm_lang$core$Native_Utils.eq(searchterm, '')) {
+						var request = function () {
+							if (A2(_elm_lang$core$String$startsWith, 'topic:', searchterm)) {
+								var search4topic = A2(_elm_lang$core$String$dropLeft, 6, searchterm);
+								return _user$project$Request$loadSearchTopics(search4topic);
 							} else {
-								if (A2(_elm_lang$core$String$startsWith, 'document:', searchterm)) {
-									var search4doc = A2(_elm_lang$core$String$dropLeft, 9, searchterm);
-									var docId = _elm_lang$core$String$toInt(search4doc);
-									var _p3 = docId;
-									if (_p3.ctor === 'Ok') {
-										var doc = _user$project$Document$defaultDoc;
-										return A2(
-											_user$project$Request$loadDoc,
-											1,
-											_elm_lang$core$Native_Utils.update(
-												doc,
-												{id: _p3._0}));
-									} else {
-										return A3(_user$project$Request$loadSearchDocs, search4doc, false, 'RELEVANCE');
-									}
+								if (A2(_elm_lang$core$String$startsWith, 'term:', searchterm)) {
+									var search4term = A2(_elm_lang$core$String$dropLeft, 5, searchterm);
+									return _user$project$Request$loadSearchTerms(search4term);
 								} else {
-									return _user$project$Request$loadSearchTerms(searchterm);
+									if (A2(_elm_lang$core$String$startsWith, 'document:', searchterm)) {
+										var search4doc = A2(_elm_lang$core$String$dropLeft, 9, searchterm);
+										var docId = _elm_lang$core$String$toInt(search4doc);
+										var _p3 = docId;
+										if (_p3.ctor === 'Ok') {
+											var doc = _user$project$Document$defaultDoc;
+											return A2(
+												_user$project$Request$loadDoc,
+												1,
+												_elm_lang$core$Native_Utils.update(
+													doc,
+													{id: _p3._0}));
+										} else {
+											return A3(_user$project$Request$loadSearchDocs, search4doc, false, 'RELEVANCE');
+										}
+									} else {
+										return _user$project$Request$loadSearchTerms(searchterm);
+									}
 								}
 							}
-						}
-					}();
+						}();
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{search: false, search4: searchterm})
+								}),
+							_1: request
+						};
+					} else {
+						return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+					}
+				case 'ResetSettings':
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								settings: _elm_lang$core$Native_Utils.update(
+									_user$project$Init$initSettings,
+									{frame: model.settings.frame})
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'Found':
+					var oldSettings = model.settings;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -24323,76 +25242,27 @@ var _user$project$Update$update = F2(
 							{
 								settings: _elm_lang$core$Native_Utils.update(
 									oldSettings,
-									{search: false, search4: searchterm})
-							}),
-						_1: request
-					};
-				} else {
-					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-				}
-			case 'ResetSettings':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							settings: _elm_lang$core$Native_Utils.update(
-								_user$project$Init$initSettings,
-								{frame: model.settings.frame})
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'Found':
-				var oldSettings = model.settings;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							settings: _elm_lang$core$Native_Utils.update(
-								oldSettings,
-								{search: false, search4: ''}),
-							slots: {
-								ctor: '::',
-								_0: _p0._0,
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'DeleteSlot':
-				var oldSettings = model.settings;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							slots: A2(_elm_lang$core$List$take, _p0._0, model.slots)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'UpdateSlot':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							slots: A2(
-								_elm_lang$core$List$append,
-								A2(_elm_lang$core$List$take, _p0._1, model.slots),
-								{
+									{search: false, search4: ''}),
+								slots: {
 									ctor: '::',
 									_0: _p0._0,
 									_1: {ctor: '[]'}
-								})
-						}),
-					_1: _user$project$Update$scroll2Right
-				};
-			case 'NewTopics':
-				var oldSettings = model.settings;
-				var _p4 = _p0._2;
-				if (_p4.ctor === 'Ok') {
-					var _p5 = _p4._0;
+								}
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'DeleteSlot':
+					var oldSettings = model.settings;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: A2(_elm_lang$core$List$take, _p0._0, model.slots)
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				case 'UpdateSlot':
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -24403,157 +25273,572 @@ var _user$project$Update$update = F2(
 									A2(_elm_lang$core$List$take, _p0._1, model.slots),
 									{
 										ctor: '::',
-										_0: A2(_user$project$Model$TopicsView, _p0._0, _p5),
+										_0: _p0._0,
 										_1: {ctor: '[]'}
-									}),
-								topics: _p5,
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p4._0)
 									})
 							}),
 						_1: _user$project$Update$scroll2Right
 					};
-				}
-			case 'NewTerms':
-				var oldSettings = model.settings;
-				var _p6 = _p0._2;
-				if (_p6.ctor === 'Ok') {
-					var _p7 = _p6._0;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._1, model.slots),
-									{
-										ctor: '::',
-										_0: A2(_user$project$Model$TermsView, _p0._0, _p7),
-										_1: {ctor: '[]'}
-									}),
-								terms: _p7,
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
+				case 'NewTopics':
+					var oldSettings = model.settings;
+					var _p4 = _p0._2;
+					if (_p4.ctor === 'Ok') {
+						var _p5 = _p4._0;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._1, model.slots),
+										{
+											ctor: '::',
+											_0: A2(_user$project$Model$TopicsView, _p0._0, _p5),
+											_1: {ctor: '[]'}
+										}),
+									topics: _p5,
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p4._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewTerms':
+					var oldSettings = model.settings;
+					var _p6 = _p0._2;
+					if (_p6.ctor === 'Ok') {
+						var _p7 = _p6._0;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._1, model.slots),
+										{
+											ctor: '::',
+											_0: A2(_user$project$Model$TermsView, _p0._0, _p7),
+											_1: {ctor: '[]'}
+										}),
+									terms: _p7,
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p6._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewDocs':
+					var oldSettings = model.settings;
+					var _p8 = _p0._2;
+					if (_p8.ctor === 'Ok') {
+						var _p9 = _p8._0;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._1, model.slots),
+										{
+											ctor: '::',
+											_0: A2(_user$project$Model$DocumentsView, _p0._0, _p9),
+											_1: {ctor: '[]'}
+										}),
+									docs: _p9,
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p8._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewDocTokens':
+					var allTerms = model.terms;
+					var oldSettings = model.settings;
+					var _p10 = _p0._2;
+					if (_p10.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._1, model.slots),
+										{
+											ctor: '::',
+											_0: A2(
+												_user$project$Model$TermsView,
+												_p0._0,
+												A2(_user$project$Document$documentTerms, _p10._0, allTerms)),
+											_1: {ctor: '[]'}
+										}),
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p10._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewDocument':
+					var oldSettings = model.settings;
+					var _p11 = _p0._1;
+					if (_p11.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._0, model.slots),
+										{
+											ctor: '::',
+											_0: _user$project$Model$ShowdocumentView(_p11._0),
+											_1: {ctor: '[]'}
+										}),
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: 'Document not found'})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewFrames':
+					return {ctor: '_Tuple2', _0: model, _1: _user$project$Update$scroll2Right};
+				case 'NewTermTopics':
+					var _p14 = _p0._0;
+					var maybeTerm2TopicList = function (terms) {
+						var _p12 = terms;
+						if (_p12.ctor === 'Just') {
+							return _p12._0.top_topic;
+						} else {
+							return {ctor: '[]'};
+						}
 					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p6._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
+					var fetchTerm = function (terms) {
+						return _elm_lang$core$List$head(
+							A2(
+								_elm_lang$core$List$filter,
+								function (x) {
+									return _elm_lang$core$Native_Utils.eq(x.name, _p14);
+								},
+								terms));
 					};
-				}
-			case 'NewDocs':
-				var oldSettings = model.settings;
-				var _p8 = _p0._2;
-				if (_p8.ctor === 'Ok') {
-					var _p9 = _p8._0;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._1, model.slots),
-									{
-										ctor: '::',
-										_0: A2(_user$project$Model$DocumentsView, _p0._0, _p9),
-										_1: {ctor: '[]'}
-									}),
-								docs: _p9,
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
+					var isMember = F2(
+						function (terms, topics) {
+							return A2(
+								_elm_lang$core$List$member,
+								topics.id,
+								maybeTerm2TopicList(
+									fetchTerm(terms)));
+						});
+					var newTopics = function (terms) {
+						return A2(
+							_elm_lang$core$List$filter,
+							isMember(terms),
+							model.topics);
 					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p8._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
+					var oldSettings = model.settings;
+					var _p13 = _p0._2;
+					if (_p13.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._1, model.slots),
+										{
+											ctor: '::',
+											_0: A2(
+												_user$project$Model$TopicsView,
+												A2(_elm_lang$core$Basics_ops['++'], 'Topics with ', _p14),
+												newTopics(_p13._0)),
+											_1: {ctor: '[]'}
+										}),
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p13._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewSearchTopics':
+					var concatTopTopics = function (terms) {
+						return _elm_lang$core$Set$toList(
+							_elm_lang$core$Set$fromList(
+								_elm_lang$core$List$concat(
+									A2(
+										_elm_lang$core$List$map,
+										function (_) {
+											return _.top_topic;
+										},
+										terms))));
 					};
-				}
-			case 'NewDocTokens':
-				var allTerms = model.terms;
-				var oldSettings = model.settings;
-				var _p10 = _p0._2;
-				if (_p10.ctor === 'Ok') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._1, model.slots),
-									{
+					var isMember = F2(
+						function (terms, topics) {
+							return A2(
+								_elm_lang$core$List$member,
+								topics.id,
+								concatTopTopics(terms));
+						});
+					var newTopics = function (terms) {
+						return A2(
+							_elm_lang$core$List$filter,
+							isMember(terms),
+							model.topics);
+					};
+					var oldSettings = model.settings;
+					var _p15 = _p0._1;
+					if (_p15.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: {
 										ctor: '::',
 										_0: A2(
-											_user$project$Model$TermsView,
+											_user$project$Model$TopicsView,
 											_p0._0,
-											A2(_user$project$Document$documentTerms, _p10._0, allTerms)),
+											newTopics(_p15._0)),
 										_1: {ctor: '[]'}
-									}),
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p10._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'NewDocument':
-				var oldSettings = model.settings;
-				var _p11 = _p0._1;
-				if (_p11.ctor === 'Ok') {
+									},
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{search: false, error: '', frame: _user$project$Model$Custom})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											search: false,
+											search4: '',
+											error: _elm_lang$core$Basics$toString(_p15._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewSearchTerms':
+					var oldSettings = model.settings;
+					var _p16 = _p0._1;
+					if (_p16.ctor === 'Ok') {
+						var _p17 = _p16._0;
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: {
+										ctor: '::',
+										_0: A2(_user$project$Model$TermsView, _p0._0, _p17),
+										_1: {ctor: '[]'}
+									},
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											searchResult: _user$project$Model$TermResult(_p17),
+											error: '',
+											frame: _user$project$Model$Custom
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											search: false,
+											search4: '',
+											error: _elm_lang$core$Basics$toString(_p16._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'NewSearchDocs':
+					var oldSettings = model.settings;
+					var _p18 = _p0._1;
+					if (_p18.ctor === 'Ok') {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: {
+										ctor: '::',
+										_0: A2(_user$project$Model$DocumentsView, _p0._0, _p18._0),
+										_1: {ctor: '[]'}
+									},
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{search: false, error: '', frame: _user$project$Model$Custom})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											search: false,
+											search4: '',
+											error: _elm_lang$core$Basics$toString(_p18._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'ReturnDocs':
+					var oldSettings = model.settings;
+					var _p19 = _p0._3;
+					if (_p19.ctor === 'Ok') {
+						var _p22 = _p19._0;
+						var newAnswer = function () {
+							var _p20 = model.answer.terms;
+							if (_p20.ctor === 'Just') {
+								return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
+							} else {
+								return {
+									docs: _elm_lang$core$Maybe$Just(_p22),
+									terms: _elm_lang$core$Maybe$Nothing
+								};
+							}
+						}();
+						var view = function () {
+							var _p21 = model.answer.terms;
+							if (_p21.ctor === 'Just') {
+								return A3(
+									_user$project$Model$TermsDocumentsView,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'Details for Topic',
+										_elm_lang$core$Basics$toString(_p0._0.id)),
+									_p21._0,
+									_p22);
+							} else {
+								return A3(
+									_user$project$Model$TermsDocumentsView,
+									'loading',
+									{ctor: '[]'},
+									_p22);
+							}
+						}();
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._2, model.slots),
+										{
+											ctor: '::',
+											_0: view,
+											_1: {ctor: '[]'}
+										}),
+									answer: newAnswer,
+									docs: _p22,
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p19._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'ReturnTerms':
+					var oldSettings = model.settings;
+					var _p23 = _p0._3;
+					if (_p23.ctor === 'Ok') {
+						var _p26 = _p23._0;
+						var newAnswer = function () {
+							var _p24 = model.answer.docs;
+							if (_p24.ctor === 'Just') {
+								return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
+							} else {
+								return {
+									docs: _elm_lang$core$Maybe$Nothing,
+									terms: _elm_lang$core$Maybe$Just(_p26)
+								};
+							}
+						}();
+						var view = function () {
+							var _p25 = model.answer.docs;
+							if (_p25.ctor === 'Just') {
+								return A3(
+									_user$project$Model$TermsDocumentsView,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										'Details for Topic',
+										_elm_lang$core$Basics$toString(_p0._0.id)),
+									_p26,
+									_p25._0);
+							} else {
+								return A3(
+									_user$project$Model$TermsDocumentsView,
+									'loading',
+									_p26,
+									{ctor: '[]'});
+							}
+						}();
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p0._2, model.slots),
+										{
+											ctor: '::',
+											_0: view,
+											_1: {ctor: '[]'}
+										}),
+									terms: _p26,
+									answer: newAnswer,
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{error: ''})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					} else {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									settings: _elm_lang$core$Native_Utils.update(
+										oldSettings,
+										{
+											error: _elm_lang$core$Basics$toString(_p23._0)
+										})
+								}),
+							_1: _user$project$Update$scroll2Right
+						};
+					}
+				case 'ExecCmd':
+					var oldSettings = model.settings;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -24564,419 +25849,84 @@ var _user$project$Update$update = F2(
 									A2(_elm_lang$core$List$take, _p0._0, model.slots),
 									{
 										ctor: '::',
-										_0: _user$project$Model$ShowdocumentView(_p11._0),
+										_0: _user$project$Model$Empty(_p0._1),
 										_1: {ctor: '[]'}
-									}),
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
+									})
 							}),
-						_1: _user$project$Update$scroll2Right
+						_1: _p0._2
 					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: 'Document not found'})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'NewFrames':
-				return {ctor: '_Tuple2', _0: model, _1: _user$project$Update$scroll2Right};
-			case 'NewTermTopics':
-				var _p14 = _p0._0;
-				var maybeTerm2TopicList = function (terms) {
-					var _p12 = terms;
-					if (_p12.ctor === 'Just') {
-						return _p12._0.top_topic;
+				case 'NewTermContainerSlot':
+					var _p28 = _p0._1;
+					var _p27 = _p0._0;
+					var oldDict = model.termsDict;
+					var oldSettings = model.settings;
+					if (A2(_elm_lang$core$Dict$member, _p27, oldDict)) {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p28, model.slots),
+										{
+											ctor: '::',
+											_0: _user$project$Model$TermsContainerSlot(_p27),
+											_1: {ctor: '[]'}
+										})
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
 					} else {
-						return {ctor: '[]'};
+						var _v18 = _p0._3,
+							_v19 = _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: A2(
+									_elm_lang$core$List$append,
+									A2(_elm_lang$core$List$take, _p28, model.slots),
+									{
+										ctor: '::',
+										_0: _user$project$Model$TermsContainerSlot(_p27),
+										_1: {ctor: '[]'}
+									}),
+								termsDict: A3(_elm_lang$core$Dict$insert, _p27, _p0._2, oldDict)
+							});
+						msg = _v18;
+						model = _v19;
+						continue update;
 					}
-				};
-				var fetchTerm = function (terms) {
-					return _elm_lang$core$List$head(
-						A2(
-							_elm_lang$core$List$filter,
-							function (x) {
-								return _elm_lang$core$Native_Utils.eq(x.name, _p14);
-							},
-							terms));
-				};
-				var isMember = F2(
-					function (terms, topics) {
-						return A2(
-							_elm_lang$core$List$member,
-							topics.id,
-							maybeTerm2TopicList(
-								fetchTerm(terms)));
-					});
-				var newTopics = function (terms) {
+				case 'ManageTermsCache':
+					var oldSettings = model.settings;
+					var _p29 = A2(_user$project$ContainerCache$update, _p0._0, model.termsCache);
+					var newdata = _p29._0;
+					var cmd = _p29._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								termsCache: newdata,
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{error: ''})
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Msg$ManageTermsCache, cmd)
+					};
+				case 'Batch':
 					return A2(
-						_elm_lang$core$List$filter,
-						isMember(terms),
-						model.topics);
-				};
-				var oldSettings = model.settings;
-				var _p13 = _p0._2;
-				if (_p13.ctor === 'Ok') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._1, model.slots),
-									{
-										ctor: '::',
-										_0: A2(
-											_user$project$Model$TopicsView,
-											A2(_elm_lang$core$Basics_ops['++'], 'Topics with ', _p14),
-											newTopics(_p13._0)),
-										_1: {ctor: '[]'}
-									}),
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p13._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'NewSearchTopics':
-				var concatTopTopics = function (terms) {
-					return _elm_lang$core$Set$toList(
-						_elm_lang$core$Set$fromList(
-							_elm_lang$core$List$concat(
-								A2(
-									_elm_lang$core$List$map,
-									function (_) {
-										return _.top_topic;
-									},
-									terms))));
-				};
-				var isMember = F2(
-					function (terms, topics) {
-						return A2(
-							_elm_lang$core$List$member,
-							topics.id,
-							concatTopTopics(terms));
-					});
-				var newTopics = function (terms) {
-					return A2(
-						_elm_lang$core$List$filter,
-						isMember(terms),
-						model.topics);
-				};
-				var oldSettings = model.settings;
-				var _p15 = _p0._1;
-				if (_p15.ctor === 'Ok') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: {
-									ctor: '::',
-									_0: A2(
-										_user$project$Model$TopicsView,
-										_p0._0,
-										newTopics(_p15._0)),
-									_1: {ctor: '[]'}
-								},
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{search: false, error: '', frame: _user$project$Model$Custom})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										search: false,
-										search4: '',
-										error: _elm_lang$core$Basics$toString(_p15._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'NewSearchTerms':
-				var oldSettings = model.settings;
-				var _p16 = _p0._1;
-				if (_p16.ctor === 'Ok') {
-					var _p17 = _p16._0;
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: {
-									ctor: '::',
-									_0: A2(_user$project$Model$TermsView, _p0._0, _p17),
-									_1: {ctor: '[]'}
-								},
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										searchResult: _user$project$Model$TermResult(_p17),
-										error: '',
-										frame: _user$project$Model$Custom
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										search: false,
-										search4: '',
-										error: _elm_lang$core$Basics$toString(_p16._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'NewSearchDocs':
-				var oldSettings = model.settings;
-				var _p18 = _p0._1;
-				if (_p18.ctor === 'Ok') {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: {
-									ctor: '::',
-									_0: A2(_user$project$Model$DocumentsView, _p0._0, _p18._0),
-									_1: {ctor: '[]'}
-								},
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{search: false, error: '', frame: _user$project$Model$Custom})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										search: false,
-										search4: '',
-										error: _elm_lang$core$Basics$toString(_p18._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'ReturnDocs':
-				var oldSettings = model.settings;
-				var _p19 = _p0._3;
-				if (_p19.ctor === 'Ok') {
-					var _p22 = _p19._0;
-					var newAnswer = function () {
-						var _p20 = model.answer.terms;
-						if (_p20.ctor === 'Just') {
-							return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
-						} else {
-							return {
-								docs: _elm_lang$core$Maybe$Just(_p22),
-								terms: _elm_lang$core$Maybe$Nothing
-							};
-						}
-					}();
-					var view = function () {
-						var _p21 = model.answer.terms;
-						if (_p21.ctor === 'Just') {
-							return A3(
-								_user$project$Model$TermsDocumentsView,
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'Details for Topic',
-									_elm_lang$core$Basics$toString(_p0._0.id)),
-								_p21._0,
-								_p22);
-						} else {
-							return A3(
-								_user$project$Model$TermsDocumentsView,
-								'loading',
-								{ctor: '[]'},
-								_p22);
-						}
-					}();
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._2, model.slots),
-									{
-										ctor: '::',
-										_0: view,
-										_1: {ctor: '[]'}
-									}),
-								answer: newAnswer,
-								docs: _p22,
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p19._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'ReturnTerms':
-				var oldSettings = model.settings;
-				var _p23 = _p0._3;
-				if (_p23.ctor === 'Ok') {
-					var _p26 = _p23._0;
-					var newAnswer = function () {
-						var _p24 = model.answer.docs;
-						if (_p24.ctor === 'Just') {
-							return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
-						} else {
-							return {
-								docs: _elm_lang$core$Maybe$Nothing,
-								terms: _elm_lang$core$Maybe$Just(_p26)
-							};
-						}
-					}();
-					var view = function () {
-						var _p25 = model.answer.docs;
-						if (_p25.ctor === 'Just') {
-							return A3(
-								_user$project$Model$TermsDocumentsView,
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'Details for Topic',
-									_elm_lang$core$Basics$toString(_p0._0.id)),
-								_p26,
-								_p25._0);
-						} else {
-							return A3(
-								_user$project$Model$TermsDocumentsView,
-								'loading',
-								_p26,
-								{ctor: '[]'});
-						}
-					}();
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._2, model.slots),
-									{
-										ctor: '::',
-										_0: view,
-										_1: {ctor: '[]'}
-									}),
-								terms: _p26,
-								answer: newAnswer,
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{error: ''})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				} else {
-					return {
-						ctor: '_Tuple2',
-						_0: _elm_lang$core$Native_Utils.update(
-							model,
-							{
-								settings: _elm_lang$core$Native_Utils.update(
-									oldSettings,
-									{
-										error: _elm_lang$core$Basics$toString(_p23._0)
-									})
-							}),
-						_1: _user$project$Update$scroll2Right
-					};
-				}
-			case 'ExecCmd':
-				var oldSettings = model.settings;
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
+						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
 						{
-							slots: A2(
-								_elm_lang$core$List$append,
-								A2(_elm_lang$core$List$take, _p0._0, model.slots),
-								{
-									ctor: '::',
-									_0: _user$project$Model$Empty(_p0._1),
-									_1: {ctor: '[]'}
-								})
-						}),
-					_1: _p0._2
-				};
-			case 'Batch':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: _vipentti$elm_dispatch$Dispatch$forward(_p0._0),
-						_1: {ctor: '[]'}
-					});
-			case 'Mdl':
-				return A3(_debois$elm_mdl$Material$update, _user$project$Msg$Mdl, _p0._0, model);
-			default:
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+							ctor: '::',
+							_0: _vipentti$elm_dispatch$Dispatch$forward(_p0._0),
+							_1: {ctor: '[]'}
+						});
+				case 'Mdl':
+					return A3(_debois$elm_mdl$Material$update, _user$project$Msg$Mdl, _p0._0, model);
+				default:
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			}
 		}
 	});
 
@@ -24990,6 +25940,10 @@ var _user$project$TE_elm_v2$main = _elm_lang$html$Html$program(
 	{init: _user$project$Init$init, update: _user$project$Update$update, view: _user$project$TE_elm_v2$view, subscriptions: _user$project$TE_elm_v2$subscriptions})();
 
 var Elm = {};
+Elm['ContainerCache'] = Elm['ContainerCache'] || {};
+if (typeof _user$project$ContainerCache$main !== 'undefined') {
+    _user$project$ContainerCache$main(Elm['ContainerCache'], 'ContainerCache', {"types":null,"versions":{"elm":"0.18.0"}});
+}
 Elm['Decoderhelper'] = Elm['Decoderhelper'] || {};
 if (typeof _user$project$Decoderhelper$main !== 'undefined') {
     _user$project$Decoderhelper$main(Elm['Decoderhelper'], 'Decoderhelper', {"types":null,"versions":{"elm":"0.18.0"}});
@@ -25040,7 +25994,7 @@ if (typeof _user$project$Startpage$main !== 'undefined') {
 }
 Elm['TE_elm_v2'] = Elm['TE_elm_v2'] || {};
 if (typeof _user$project$TE_elm_v2$main !== 'undefined') {
-    _user$project$TE_elm_v2$main(Elm['TE_elm_v2'], 'TE_elm_v2', {"types":{"unions":{"Model.View":{"args":[],"tags":{"Empty":["String"],"DocumentsView":["String","List Document.Doc"],"TermsDocumentsView":["String","List Term.Term","List Document.Doc"],"ErrorSlot":[],"TopicsView":["String","List Topic.Topic"],"TermsView":["String","List Term.Term"],"ShowdocumentView":["Document.Document"]}},"Dict.LeafColor":{"args":[],"tags":{"LBBlack":[],"LBlack":[]}},"Platform.Cmd.Cmd":{"args":["msg"],"tags":{"Cmd":[]}},"Material.Component.Msg":{"args":["button","textfield","menu","layout","toggles","tooltip","tabs","dispatch"],"tags":{"TooltipMsg":["Material.Component.Index","tooltip"],"TogglesMsg":["Material.Component.Index","toggles"],"LayoutMsg":["layout"],"ButtonMsg":["Material.Component.Index","button"],"MenuMsg":["Material.Component.Index","menu"],"TabsMsg":["Material.Component.Index","tabs"],"Dispatch":["dispatch"],"TextfieldMsg":["Material.Component.Index","textfield"]}},"Material.Ripple.Msg":{"args":[],"tags":{"Down":["Material.Ripple.DOMState"],"Up":[],"Tick":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":["Dict.LeafColor"]}},"Model.SearchResult":{"args":[],"tags":{"TopicResult":["List Topic.Topic"],"DocumentResult":["Document.Doc"],"TermResult":["List Term.Term"]}},"Msg.Msg":{"args":[],"tags":{"Batch":["List Msg.Msg"],"SlotToLastFromOther":["Int"],"ReturnTerms":["Topic.Topic","String","Int","Result.Result Http.Error (List Term.Term)"],"NewDocs":["String","Int","Result.Result Http.Error (List Document.Doc)"],"NewFrames":["String","Int","Result.Result Http.Error (List Term.Term)"],"None":[],"Toggle":["Model.Settings"],"DeleteSlot":["Int"],"UpdateSlot":["Model.View","Int"],"NewTermTopics":["String","Int","Result.Result Http.Error (List Term.Term)"],"NewDocument":["Int","Result.Result Http.Error Document.Document"],"Found":["Model.View"],"NewTopics":["String","Int","Result.Result Http.Error (List Topic.Topic)"],"NewSearchDocs":["String","Result.Result Http.Error (List Document.Doc)"],"ExecCmd":["Int","String","Platform.Cmd.Cmd Msg.Msg"],"Open":["Model.Frame"],"NewDocTokens":["String","Int","Result.Result Http.Error Document.Document"],"NewSearchTerms":["String","Result.Result Http.Error (List Term.Term)"],"Mdl":["Material.Msg Msg.Msg"],"RemoveSlotFromOther":["Int"],"NewSearchTopics":["String","Result.Result Http.Error (List Term.Term)"],"ResetSettings":[],"AdvancedSearch":["String"],"ChoseSlotDialog":["Int"],"Search":["String"],"NewTerms":["String","Int","Result.Result Http.Error (List Term.Term)"],"ReturnDocs":["Topic.Topic","String","Int","Result.Result Http.Error (List Document.Doc)"]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Model.Frame":{"args":[],"tags":{"Custom":[],"Startpage":[],"ViewTopics":[]}},"Material.Tooltip.Msg":{"args":[],"tags":{"Enter":["Material.Tooltip.DOMState"],"Leave":[]}},"Dict.NColor":{"args":[],"tags":{"BBlack":[],"Red":[],"NBlack":[],"Black":[]}},"Json.Decode.Decoder":{"args":["a"],"tags":{"Decoder":[]}},"Material.Textfield.Msg":{"args":[],"tags":{"Focus":[],"Input":["String"],"Blur":[]}},"Material.Layout.Msg":{"args":[],"tags":{"Resize":["Int"],"ToggleDrawer":[],"TransitionEnd":[],"ScrollPane":["Bool","Float"],"Ripple":["Int","Material.Ripple.Msg"],"ScrollTab":["Material.Layout.TabScrollState"],"TransitionHeader":["{ toCompact : Bool, fixedHeader : Bool }"],"NOP":[]}},"Material.Toggles.Msg":{"args":[],"tags":{"Ripple":["Material.Ripple.Msg"],"SetFocus":["Bool"]}},"VirtualDom.Property":{"args":["msg"],"tags":{"Property":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String"],"NetworkError":[],"Timeout":[],"BadStatus":["Http.Response String"],"BadPayload":["String","Http.Response String"]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Material.Tabs.Msg":{"args":[],"tags":{"Ripple":["Int","Material.Ripple.Msg"]}},"Material.Menu.Msg":{"args":["m"],"tags":{"Tick":[],"Close":[],"Open":["Material.Menu.Geometry.Geometry"],"Key":["List (Material.Options.Internal.Summary (Material.Menu.ItemConfig m) m)","Int"],"Ripple":["Int","Material.Ripple.Msg"],"Select":["Int","Maybe.Maybe m"],"Click":["Mouse.Position"]}},"Material.Dispatch.Config":{"args":["msg"],"tags":{"Config":["{ decoders : List ( String , ( Json.Decode.Decoder msg, Maybe.Maybe Html.Events.Options ) ) , lift : Maybe.Maybe (Json.Decode.Decoder (List msg) -> Json.Decode.Decoder msg) }"]}}},"aliases":{"Material.Button.Msg":{"args":[],"type":"Material.Ripple.Msg"},"Material.Layout.TabScrollState":{"args":[],"type":"{ canScrollLeft : Bool , canScrollRight : Bool , width : Maybe.Maybe Int }"},"Material.Tooltip.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle, offsetWidth : Float, offsetHeight : Float }"},"Html.Attribute":{"args":["msg"],"type":"VirtualDom.Property msg"},"Material.Menu.ItemConfig":{"args":["m"],"type":"{ enabled : Bool, divider : Bool, onSelect : Maybe.Maybe m }"},"Document.Token":{"args":[],"type":"{ topic_id : Int , posintion_in_document : Int , term : String , parent_topic_ids : List Int }"},"Material.Component.Index":{"args":[],"type":"List Int"},"Html.Events.Options":{"args":[],"type":"{ stopPropagation : Bool, preventDefault : Bool }"},"Http.Response":{"args":["body"],"type":"{ url : String , status : { code : Int, message : String } , headers : Dict.Dict String String , body : body }"},"Material.Ripple.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle , clientX : Maybe.Maybe Float , clientY : Maybe.Maybe Float , touchX : Maybe.Maybe Float , touchY : Maybe.Maybe Float , type_ : String }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Topic.Topic":{"args":[],"type":"{ id : Int , hirarchical_topic : Topic.TopicHirarchie , color_topic : String , top_terms : List Term.Term }"},"Term.Term":{"args":[],"type":"{ id : Int , name : String , wordtype : Maybe.Maybe Int , count : Maybe.Maybe Int , relevance : Maybe.Maybe Int , top_topic : List Int }"},"Material.Options.Internal.Summary":{"args":["c","m"],"type":"{ classes : List String , css : List ( String, String ) , attrs : List (Html.Attribute m) , internal : List (Html.Attribute m) , dispatch : Material.Dispatch.Config m , config : c }"},"Document.Doc":{"args":[],"type":"{ id : Int , keyword_snippet : String , keyword_title : String , top_topic : List Int , linkurl : String , time_stamp : Int , title : String , snippet : String , topic_id : Maybe.Maybe Int , document_count : Maybe.Maybe String , relevance : Maybe.Maybe Float , isino : Maybe.Maybe Int }"},"Model.Settings":{"args":[],"type":"{ error : String , mobile : Bool , showRelevance : Bool , search : Bool , search4 : String , searchResult : Model.SearchResult , frame : Model.Frame }"},"Material.Msg":{"args":["m"],"type":"Material.Component.Msg Material.Button.Msg Material.Textfield.Msg (Material.Menu.Msg m) Material.Layout.Msg Material.Toggles.Msg Material.Tooltip.Msg Material.Tabs.Msg (List m)"},"Material.Menu.Geometry.Element":{"args":[],"type":"{ offsetTop : Float , offsetLeft : Float , offsetHeight : Float , bounds : DOM.Rectangle }"},"Material.Menu.Geometry.Geometry":{"args":[],"type":"{ button : Material.Menu.Geometry.Element , menu : Material.Menu.Geometry.Element , container : Material.Menu.Geometry.Element , offsetTops : List Float , offsetHeights : List Float }"},"Document.Document":{"args":[],"type":"{ id : Int , linkurl : String , time_stamp : Int , title : String , fulltext : String , search_test : String , frame_list : List String , word_list : List Document.Token }"},"Topic.TopicHirarchie":{"args":[],"type":"{ start : Int, end : Int, depth : Int, cluster : Maybe.Maybe String }"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"}},"message":"Msg.Msg"},"versions":{"elm":"0.18.0"}});
+    _user$project$TE_elm_v2$main(Elm['TE_elm_v2'], 'TE_elm_v2', {"types":{"unions":{"ContainerCache.Msg":{"args":["a"],"tags":{"LoadCheckPage":["ContainerCache.Meta a","Int","Result.Result Http.Error a"],"UpdatePage":["ContainerCache.PageMsg","Maybe.Maybe (ContainerCache.Page a)"],"LoadNewContainer":["String","Int","Int","Int","Int","Json.Decode.Decoder a","ContainerCache.Meta a -> Int -> ContainerCache.Page a"]}},"Model.View":{"args":[],"tags":{"Empty":["String"],"TermsContainerSlot":["String"],"DocumentsView":["String","List Document.Doc"],"TermsDocumentsView":["String","List Term.Term","List Document.Doc"],"ErrorSlot":[],"TopicsView":["String","List Topic.Topic"],"TermsView":["String","List Term.Term"],"ShowdocumentView":["Document.Document"]}},"Dict.LeafColor":{"args":[],"tags":{"LBBlack":[],"LBlack":[]}},"Platform.Cmd.Cmd":{"args":["msg"],"tags":{"Cmd":[]}},"Material.Component.Msg":{"args":["button","textfield","menu","layout","toggles","tooltip","tabs","dispatch"],"tags":{"TooltipMsg":["Material.Component.Index","tooltip"],"TogglesMsg":["Material.Component.Index","toggles"],"LayoutMsg":["layout"],"ButtonMsg":["Material.Component.Index","button"],"MenuMsg":["Material.Component.Index","menu"],"TabsMsg":["Material.Component.Index","tabs"],"Dispatch":["dispatch"],"TextfieldMsg":["Material.Component.Index","textfield"]}},"Material.Ripple.Msg":{"args":[],"tags":{"Down":["Material.Ripple.DOMState"],"Up":[],"Tick":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":["Dict.LeafColor"]}},"Model.SearchResult":{"args":[],"tags":{"TopicResult":["List Topic.Topic"],"DocumentResult":["Document.Doc"],"TermResult":["List Term.Term"]}},"ContainerCache.Page":{"args":["a"],"tags":{"Loaded":["a"],"HandleError":["String"],"ToLoad":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)"]}},"Msg.Msg":{"args":[],"tags":{"Batch":["List Msg.Msg"],"SlotToLastFromOther":["Int"],"ReturnTerms":["Topic.Topic","String","Int","Result.Result Http.Error (List Term.Term)"],"NewDocs":["String","Int","Result.Result Http.Error (List Document.Doc)"],"NewFrames":["String","Int","Result.Result Http.Error (List Term.Term)"],"None":[],"Toggle":["Model.Settings"],"DeleteSlot":["Int"],"UpdateSlot":["Model.View","Int"],"NewTermTopics":["String","Int","Result.Result Http.Error (List Term.Term)"],"ManageTermsCache":["ContainerCache.ContainerModelMsg (List Term.Term)"],"NewDocument":["Int","Result.Result Http.Error Document.Document"],"Found":["Model.View"],"NewTopics":["String","Int","Result.Result Http.Error (List Topic.Topic)"],"NewTermContainerSlot":["String","Int","Int","Msg.Msg"],"NewSearchDocs":["String","Result.Result Http.Error (List Document.Doc)"],"ExecCmd":["Int","String","Platform.Cmd.Cmd Msg.Msg"],"Open":["Model.Frame"],"NewDocTokens":["String","Int","Result.Result Http.Error Document.Document"],"NewSearchTerms":["String","Result.Result Http.Error (List Term.Term)"],"Mdl":["Material.Msg Msg.Msg"],"RemoveSlotFromOther":["Int"],"NewSearchTopics":["String","Result.Result Http.Error (List Term.Term)"],"ResetSettings":[],"AdvancedSearch":["String"],"ChoseSlotDialog":["Int"],"Search":["String"],"NewTerms":["String","Int","Result.Result Http.Error (List Term.Term)"],"ReturnDocs":["Topic.Topic","String","Int","Result.Result Http.Error (List Document.Doc)"]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"ContainerCache.ContainerModelMsg":{"args":["a"],"tags":{"LoadNewPage":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)","ContainerCache.Msg a"],"CreateNewContainer":["ContainerCache.Msg a"],"PageUpdate":["Int","ContainerCache.PageMsg"]}},"Model.Frame":{"args":[],"tags":{"Custom":[],"Startpage":[],"ViewTopics":[]}},"Material.Tooltip.Msg":{"args":[],"tags":{"Enter":["Material.Tooltip.DOMState"],"Leave":[]}},"Dict.NColor":{"args":[],"tags":{"BBlack":[],"Red":[],"NBlack":[],"Black":[]}},"ContainerCache.PageMsg":{"args":[],"tags":{"NextPage":[],"PrevPage":[]}},"Json.Decode.Decoder":{"args":["a"],"tags":{"Decoder":[]}},"Material.Textfield.Msg":{"args":[],"tags":{"Focus":[],"Input":["String"],"Blur":[]}},"Material.Layout.Msg":{"args":[],"tags":{"Resize":["Int"],"ToggleDrawer":[],"TransitionEnd":[],"ScrollPane":["Bool","Float"],"Ripple":["Int","Material.Ripple.Msg"],"ScrollTab":["Material.Layout.TabScrollState"],"TransitionHeader":["{ toCompact : Bool, fixedHeader : Bool }"],"NOP":[]}},"Material.Toggles.Msg":{"args":[],"tags":{"Ripple":["Material.Ripple.Msg"],"SetFocus":["Bool"]}},"VirtualDom.Property":{"args":["msg"],"tags":{"Property":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String"],"NetworkError":[],"Timeout":[],"BadStatus":["Http.Response String"],"BadPayload":["String","Http.Response String"]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Material.Tabs.Msg":{"args":[],"tags":{"Ripple":["Int","Material.Ripple.Msg"]}},"Material.Menu.Msg":{"args":["m"],"tags":{"Tick":[],"Close":[],"Open":["Material.Menu.Geometry.Geometry"],"Key":["List (Material.Options.Internal.Summary (Material.Menu.ItemConfig m) m)","Int"],"Ripple":["Int","Material.Ripple.Msg"],"Select":["Int","Maybe.Maybe m"],"Click":["Mouse.Position"]}},"Material.Dispatch.Config":{"args":["msg"],"tags":{"Config":["{ decoders : List ( String , ( Json.Decode.Decoder msg, Maybe.Maybe Html.Events.Options ) ) , lift : Maybe.Maybe (Json.Decode.Decoder (List msg) -> Json.Decode.Decoder msg) }"]}}},"aliases":{"Material.Button.Msg":{"args":[],"type":"Material.Ripple.Msg"},"Material.Layout.TabScrollState":{"args":[],"type":"{ canScrollLeft : Bool , canScrollRight : Bool , width : Maybe.Maybe Int }"},"Material.Tooltip.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle, offsetWidth : Float, offsetHeight : Float }"},"Html.Attribute":{"args":["msg"],"type":"VirtualDom.Property msg"},"Material.Menu.ItemConfig":{"args":["m"],"type":"{ enabled : Bool, divider : Bool, onSelect : Maybe.Maybe m }"},"Document.Token":{"args":[],"type":"{ topic_id : Int , posintion_in_document : Int , term : String , parent_topic_ids : List Int }"},"Material.Component.Index":{"args":[],"type":"List Int"},"Html.Events.Options":{"args":[],"type":"{ stopPropagation : Bool, preventDefault : Bool }"},"Http.Response":{"args":["body"],"type":"{ url : String , status : { code : Int, message : String } , headers : Dict.Dict String String , body : body }"},"ContainerCache.Meta":{"args":["a"],"type":"{ name : String , numOfItemsInContainer : Int , itemsPerPage : Int , numOfPages : Int , identifier : Int , windowSize : Int , currPage : Int , decoder : Json.Decode.Decoder a }"},"Material.Ripple.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle , clientX : Maybe.Maybe Float , clientY : Maybe.Maybe Float , touchX : Maybe.Maybe Float , touchY : Maybe.Maybe Float , type_ : String }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Topic.Topic":{"args":[],"type":"{ id : Int , hirarchical_topic : Topic.TopicHirarchie , color_topic : String , top_terms : List Term.Term }"},"Term.Term":{"args":[],"type":"{ id : Int , name : String , wordtype : Maybe.Maybe Int , count : Maybe.Maybe Int , relevance : Maybe.Maybe Int , top_topic : List Int }"},"Material.Options.Internal.Summary":{"args":["c","m"],"type":"{ classes : List String , css : List ( String, String ) , attrs : List (Html.Attribute m) , internal : List (Html.Attribute m) , dispatch : Material.Dispatch.Config m , config : c }"},"Document.Doc":{"args":[],"type":"{ id : Int , keyword_snippet : String , keyword_title : String , top_topic : List Int , linkurl : String , time_stamp : Int , title : String , snippet : String , topic_id : Maybe.Maybe Int , document_count : Maybe.Maybe String , relevance : Maybe.Maybe Float , isino : Maybe.Maybe Int }"},"Model.Settings":{"args":[],"type":"{ error : String , mobile : Bool , showRelevance : Bool , search : Bool , search4 : String , searchResult : Model.SearchResult , frame : Model.Frame }"},"Material.Msg":{"args":["m"],"type":"Material.Component.Msg Material.Button.Msg Material.Textfield.Msg (Material.Menu.Msg m) Material.Layout.Msg Material.Toggles.Msg Material.Tooltip.Msg Material.Tabs.Msg (List m)"},"Material.Menu.Geometry.Element":{"args":[],"type":"{ offsetTop : Float , offsetLeft : Float , offsetHeight : Float , bounds : DOM.Rectangle }"},"Material.Menu.Geometry.Geometry":{"args":[],"type":"{ button : Material.Menu.Geometry.Element , menu : Material.Menu.Geometry.Element , container : Material.Menu.Geometry.Element , offsetTops : List Float , offsetHeights : List Float }"},"Document.Document":{"args":[],"type":"{ id : Int , linkurl : String , time_stamp : Int , title : String , fulltext : String , search_test : String , frame_list : List String , word_list : List Document.Token }"},"Topic.TopicHirarchie":{"args":[],"type":"{ start : Int, end : Int, depth : Int, cluster : Maybe.Maybe String }"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"}},"message":"Msg.Msg"},"versions":{"elm":"0.18.0"}});
 }
 Elm['Term'] = Elm['Term'] || {};
 if (typeof _user$project$Term$main !== 'undefined') {

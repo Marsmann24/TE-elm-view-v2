@@ -6,10 +6,12 @@ import Topic exposing (Topic, defaultTopic)
 import Term exposing (Term, defaultTerm, termsDecoder)
 import Document exposing (Doc, defaultDoc, Document, defaultDocument)
 import Request exposing (loadTopics)
+import ContainerCache
 
 import Material
 import Material.Layout as Layout
 import Array
+import Dict
 
 init : (Model, Cmd Msg)
 init =
@@ -22,6 +24,8 @@ init =
         { terms = Nothing
         , docs = Nothing
         }
+    , termsCache = (ContainerCache.newContainerModel Array.empty 10 ContainerCache.defaultContainer)
+    , termsDict = Dict.empty
     , mdl = Material.model
     } , Cmd.batch [(loadTopics 0), (Layout.sub0 Mdl)])
 
