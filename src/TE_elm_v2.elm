@@ -8,10 +8,10 @@ import Update
 import Init
 
 import Model exposing (Model)
-import Msg exposing (Msg)
+import Msg exposing (Msg(..))
 
 import Html
-
+import Material.Layout as Layout
 
 main : Program Never Model Msg
 main =
@@ -24,7 +24,9 @@ main =
 
 view model =
     Mainview_v4.view model
+    -- ButtonTest.view model
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    -- Sub.none
+    Layout.subs Mdl model.mdl

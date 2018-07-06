@@ -24,6 +24,7 @@ import Material.Toggles as Toggles
 import Material.Button as Button
 import Material.Card as Card
 import Material.Elevation as Elevation
+import Material.Spinner as Spinner
 import Json.Decode as Json
 
 view : Model -> Html Msg
@@ -54,6 +55,7 @@ view model =
             , drawer = [ viewSwitch model]
             , tabs = ( [], [])
             , main =
+                -- [ ButtonTest.view model
                 [ (if settings.search
                     then
                         span
@@ -133,20 +135,20 @@ viewBody model =
         Startpage ->
             Startpage.view model.settings
         _ ->
-        div [ Elevation.e4
-            , cs "flex__row"
-            , css "height" "100%"
-            ]
-            [ div
-                [ css "white-space" "nowrap"
-                , css "display" "inline-block"
-                , css "overflow-y" "hidden"
-                , css "overflow-x" "auto"
+            div [ Elevation.e4
+                , cs "flex__row"
                 , css "height" "100%"
-                , Material.Options.id "board"
                 ]
-                (List.indexedMap (slot model) model.slots)
-            ]
+                [ div
+                    [ css "white-space" "nowrap"
+                    , css "display" "inline-block"
+                    , css "overflow-y" "hidden"
+                    , css "overflow-x" "auto"
+                    , css "height" "100%"
+                    , Material.Options.id "board"
+                    ]
+                    (List.indexedMap (slot model) model.slots)
+                ]
 
 slot : Model -> Int -> View -> Html Msg
 slot model slotId view =
@@ -169,8 +171,20 @@ slot model slotId view =
                 , css "display" "inline-flex"
                 , css "height" "calc(100% - 5px)"
                 ]
-                [ Icon.view "autorenew" [ css "margin" "5px"]
-                , p [] [ text "loading"]
+                [ span
+                    [ css "margin" "12px"
+                    ]
+                    [ text "loading..."]
+                , span [ cs "loading"]
+                    [ Spinner.spinner
+                        [ Spinner.active True
+                        , Spinner.singleColor True
+                        ]
+                    -- , Icon.view "autorenew"
+                    --     [ css "margin" "5px"
+                    --     , Icon.size48
+                    --     ]
+                    ]
                 ]
         _ ->
             div [ css "width" "100px"]

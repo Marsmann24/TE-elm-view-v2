@@ -1,13 +1,14 @@
 module Init exposing (init, initSettings)
 
 import Model exposing (..)
-import Msg exposing (Msg)
+import Msg exposing (Msg(..))
 import Topic exposing (Topic, defaultTopic)
-import Term exposing (Term, defaultTerm)
+import Term exposing (Term, defaultTerm, termsDecoder)
 import Document exposing (Doc, defaultDoc, Document, defaultDocument)
 import Request exposing (loadTopics)
 
 import Material
+import Material.Layout as Layout
 import Array
 
 init : (Model, Cmd Msg)
@@ -22,7 +23,7 @@ init =
         , docs = Nothing
         }
     , mdl = Material.model
-    } , (loadTopics 0))
+    } , Cmd.batch [(loadTopics 0), (Layout.sub0 Mdl)])
 
 initSettings : Settings
 initSettings =
