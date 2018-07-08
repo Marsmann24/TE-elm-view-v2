@@ -15,6 +15,7 @@ import Material.Icon as Icon
 import Material.Button as Button
 import Material.Color as Color
 import Material.Card as Card
+import Dict
 
 view : Model -> Property c Msg -> Int -> String -> Bool -> Html Msg
 view model flex slotId slotName withHead =
@@ -51,8 +52,23 @@ view model flex slotId slotName withHead =
         , div
             [ cs "slot__content"
             , css "max-width" "400px"
+            , Material.Options.id ("slot" ++ (toString slotId))
             ]
-            (List.map2 (doc2CardView slotId) model.docs (List.range 1 (List.length model.docs)))
+            (moveActions
+                ManageDocsCache
+                model.docsCache
+                (Maybe.withDefault 0 (Dict.get slotName model.docsDict))
+                slotId
+                (\x y ->
+                    Card.view
+                        [ Color.background Color.primary
+                        , css "width" "94%"
+                        , css "margin" "4% 8% 4% 3%"
+                        ]
+                        [ Card.title x y])
+                []
+                (List.map2 (doc2CardView slotId) model.docs (List.range 1 (List.length model.docs)))
+            )
         ]
 
 doc2CardView : Int -> Doc -> Int -> Html Msg

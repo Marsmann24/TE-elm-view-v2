@@ -21722,10 +21722,29 @@ var _user$project$Document$documentDecoder = A2(
 			_elm_lang$core$Json_Decode$list(_user$project$Document$tokenDecoder))));
 
 var _user$project$Model$topicNumber = 30;
-var _user$project$Model$Model = F9(
-	function (a, b, c, d, e, f, g, h, i) {
-		return {topics: a, docs: b, terms: c, settings: d, slots: e, answer: f, termsCache: g, termsDict: h, mdl: i};
-	});
+var _user$project$Model$Model = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return function (k) {
+											return {topics: a, docs: b, terms: c, settings: d, slots: e, answer: f, termsCache: g, termsDict: h, docsCache: i, docsDict: j, mdl: k};
+										};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
 var _user$project$Model$Settings = F7(
 	function (a, b, c, d, e, f, g) {
 		return {error: a, mobile: b, showRelevance: c, search: d, search4: e, searchResult: f, frame: g};
@@ -21746,9 +21765,17 @@ var _user$project$Model$ErrorSlot = {ctor: 'ErrorSlot'};
 var _user$project$Model$Empty = function (a) {
 	return {ctor: 'Empty', _0: a};
 };
-var _user$project$Model$TermsContainerSlot = function (a) {
-	return {ctor: 'TermsContainerSlot', _0: a};
+var _user$project$Model$DocsContainerSlot = function (a) {
+	return {ctor: 'DocsContainerSlot', _0: a};
 };
+var _user$project$Model$TermsContainerSlot = F2(
+	function (a, b) {
+		return {ctor: 'TermsContainerSlot', _0: a, _1: b};
+	});
+var _user$project$Model$CombinedView = F3(
+	function (a, b, c) {
+		return {ctor: 'CombinedView', _0: a, _1: b, _2: c};
+	});
 var _user$project$Model$ShowdocumentView = function (a) {
 	return {ctor: 'ShowdocumentView', _0: a};
 };
@@ -21780,12 +21807,19 @@ var _user$project$Msg$ExecCmd = F3(
 	function (a, b, c) {
 		return {ctor: 'ExecCmd', _0: a, _1: b, _2: c};
 	});
+var _user$project$Msg$ManageDocsCache = function (a) {
+	return {ctor: 'ManageDocsCache', _0: a};
+};
+var _user$project$Msg$NewDocsContainerSlot = F4(
+	function (a, b, c, d) {
+		return {ctor: 'NewDocsContainerSlot', _0: a, _1: b, _2: c, _3: d};
+	});
 var _user$project$Msg$ManageTermsCache = function (a) {
 	return {ctor: 'ManageTermsCache', _0: a};
 };
-var _user$project$Msg$NewTermContainerSlot = F4(
-	function (a, b, c, d) {
-		return {ctor: 'NewTermContainerSlot', _0: a, _1: b, _2: c, _3: d};
+var _user$project$Msg$NewTermsContainerSlot = F5(
+	function (a, b, c, d, e) {
+		return {ctor: 'NewTermsContainerSlot', _0: a, _1: b, _2: c, _3: d, _4: e};
 	});
 var _user$project$Msg$ReturnDocs = F4(
 	function (a, b, c, d) {
@@ -21926,10 +21960,7 @@ var _user$project$Request$loadBestDocs = F5(
 		var termArgument = function () {
 			var _p1 = maybeterm;
 			if (_p1.ctor === 'Just') {
-				return A2(
-					_elm_lang$core$Basics_ops['++'],
-					'&term',
-					_elm_lang$core$Basics$toString(_p1._0));
+				return A2(_elm_lang$core$Basics_ops['++'], '&term=', _p1._0.name);
 			} else {
 				return '';
 			}
@@ -22070,8 +22101,93 @@ var _user$project$Request$loadSearchDocs = F3(
 			_user$project$Msg$NewSearchDocs(name),
 			command);
 	});
-var _user$project$Request$termsPageRequest = F4(
-	function (topic, slotId, meta, pagenumber) {
+var _user$project$Request$docsPageRequest = F4(
+	function (topic, termArgument, meta, pagenumber) {
+		var command = _elm_lang$core$String$concat(
+			{
+				ctor: '::',
+				_0: 'bestDocs&TopicId=',
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$core$Basics$toString(topic.id),
+					_1: {
+						ctor: '::',
+						_0: termArgument,
+						_1: {
+							ctor: '::',
+							_0: '&sorting=',
+							_1: {
+								ctor: '::',
+								_0: 'RELEVANCE',
+								_1: {
+									ctor: '::',
+									_0: '&offset=',
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$core$Basics$toString(pagenumber * meta.itemsPerPage),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+		var url = A2(_elm_lang$core$Basics_ops['++'], _user$project$Request$baseURL, command);
+		return A2(
+			_user$project$ContainerCache$ToLoad,
+			meta.identifier,
+			A2(
+				_elm_lang$http$Http$send,
+				A2(_user$project$ContainerCache$LoadCheckPage, meta, pagenumber),
+				A2(_elm_lang$http$Http$get, url, meta.decoder)));
+	});
+var _user$project$Request$createNewDocsContainer = F4(
+	function (model, topic, maybeterm, slotId) {
+		var _p2 = function () {
+			var _p3 = maybeterm;
+			if (_p3.ctor === 'Just') {
+				var _p4 = _p3._0;
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_elm_lang$core$Basics_ops['++'], '&term=', _p4.name),
+					_1: A2(_elm_lang$core$Basics_ops['++'], ' with ', _p4.name)
+				};
+			} else {
+				return {ctor: '_Tuple2', _0: '', _1: ''};
+			}
+		}();
+		var termArgument = _p2._0;
+		var termName = _p2._1;
+		var containerId = _elm_lang$core$Array$length(model.docsCache.arrayOfContainer);
+		return A4(
+			_user$project$Msg$NewDocsContainerSlot,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'Docs in Topic ',
+					_elm_lang$core$Basics$toString(topic.id)),
+				termName),
+			slotId,
+			containerId,
+			_user$project$Msg$ManageDocsCache(
+				_user$project$ContainerCache$CreateNewContainer(
+					A7(
+						_user$project$ContainerCache$LoadNewContainer,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'docslot',
+							_elm_lang$core$Basics$toString(slotId)),
+						500,
+						20,
+						1,
+						containerId,
+						_user$project$Document$bestDocsDecoder,
+						A2(_user$project$Request$docsPageRequest, topic, termArgument)))));
+	});
+var _user$project$Request$termsPageRequest = F3(
+	function (topic, meta, pagenumber) {
 		var command = _elm_lang$core$String$concat(
 			{
 				ctor: '::',
@@ -22102,12 +22218,13 @@ var _user$project$Request$termsPageRequest = F4(
 var _user$project$Request$createNewTermsContainer = F3(
 	function (model, topic, slotId) {
 		var containerId = _elm_lang$core$Array$length(model.termsCache.arrayOfContainer);
-		return A4(
-			_user$project$Msg$NewTermContainerSlot,
+		return A5(
+			_user$project$Msg$NewTermsContainerSlot,
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				'Terms in Topic ',
 				_elm_lang$core$Basics$toString(topic.id)),
+			topic,
 			slotId,
 			containerId,
 			_user$project$Msg$ManageTermsCache(
@@ -22123,583 +22240,7 @@ var _user$project$Request$createNewTermsContainer = F3(
 						1,
 						containerId,
 						_user$project$Term$termsDecoder,
-						A2(_user$project$Request$termsPageRequest, topic, slotId)))));
-	});
-
-var _user$project$IconSet$generalBackgroundColor = _debois$elm_mdl$Material_Options$cs('generalBackgroundColor');
-var _user$project$IconSet$primaryColor = _debois$elm_mdl$Material_Options$cs('primaryColor');
-var _user$project$IconSet$iconHighlighted = F2(
-	function (settings, id) {
-		return {ctor: '[]'};
-	});
-var _user$project$IconSet$iconDocument = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'description',
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Tooltip$attach,
-							_user$project$Msg$Mdl,
-							{
-								ctor: '::',
-								_0: 4,
-								_1: {ctor: '[]'}
-							}),
-						_1: args
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 4,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('document'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$IconSet$iconDoc = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'description',
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Tooltip$attach,
-							_user$project$Msg$Mdl,
-							{
-								ctor: '::',
-								_0: 4,
-								_1: {ctor: '[]'}
-							}),
-						_1: args
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 4,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('doc'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$IconSet$iconTerm = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'list',
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Tooltip$attach,
-							_user$project$Msg$Mdl,
-							{
-								ctor: '::',
-								_0: 3,
-								_1: {ctor: '[]'}
-							}),
-						_1: args
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 3,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('term'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$IconSet$iconTopicDetail = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'tablet',
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Tooltip$attach,
-							_user$project$Msg$Mdl,
-							{
-								ctor: '::',
-								_0: 2,
-								_1: {ctor: '[]'}
-							}),
-						_1: args
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 2,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('topic details'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$IconSet$iconTopic = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{ctor: '[]'},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'subject',
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Tooltip$attach,
-							_user$project$Msg$Mdl,
-							{
-								ctor: '::',
-								_0: 1,
-								_1: {ctor: '[]'}
-							}),
-						_1: args
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 1,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('topic'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$IconSet$iconHome = F2(
-	function (mdl, args) {
-		return A2(
-			_debois$elm_mdl$Material_Options$span,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('homeIcon'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Icon$view,
-					'home',
-					{
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Icon$size48,
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Tooltip$attach,
-								_user$project$Msg$Mdl,
-								{
-									ctor: '::',
-									_0: 0,
-									_1: {ctor: '[]'}
-								}),
-							_1: args
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A5(
-						_debois$elm_mdl$Material_Tooltip$render,
-						_user$project$Msg$Mdl,
-						{
-							ctor: '::',
-							_0: 0,
-							_1: {ctor: '[]'}
-						},
-						mdl,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('home'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-
-var _user$project$Documentsview$doc2CardView = F3(
-	function (slotId, doc, cardID) {
-		return A2(
-			_debois$elm_mdl$Material_Card$view,
-			{
-				ctor: '::',
-				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '120px'),
-				_1: {
-					ctor: '::',
-					_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '94%'),
-					_1: {
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '4% 8% 4% 3%'),
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Color$background(_debois$elm_mdl$Material_Color$primary),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Elevation$e0,
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$onClick(
-										A3(
-											_user$project$Msg$ExecCmd,
-											slotId + 1,
-											'1000px',
-											A2(_user$project$Request$loadDoc, slotId + 1, doc))),
-									_1: {ctor: '[]'}
-								}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Card$title,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '4px'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Card$head,
-							{
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Color$text(_debois$elm_mdl$Material_Color$white),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '14px'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100%'),
-										_1: {ctor: '[]'}
-									}
-								}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Options$span,
-									{
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 48px)'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(doc.title),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Color$text(
-										A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Grey, _debois$elm_mdl$Material_Color$S200)),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '2px'),
-										_1: {
-											ctor: '::',
-											_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '8px'),
-											_1: {
-												ctor: '::',
-												_0: A2(_debois$elm_mdl$Material_Options$css, 'align-self', 'right'),
-												_1: {ctor: '[]'}
-											}
-										}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												'id=',
-												_elm_lang$core$Basics$toString(doc.id)),
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												' | date=',
-												_elm_lang$core$Basics$toString(doc.time_stamp)))),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Card$text,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Color$text(_debois$elm_mdl$Material_Color$white),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '4px'),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '10px'),
-									_1: {ctor: '[]'}
-								}
-							}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(doc.snippet),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-var _user$project$Documentsview$view = F5(
-	function (model, flex, slotId, slotName, withHead) {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('slot'),
-				_1: {
-					ctor: '::',
-					_0: flex,
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Elevation$e0,
-						_1: {
-							ctor: '::',
-							_0: _user$project$IconSet$primaryColor,
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: withHead ? A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$center,
-								_1: {ctor: '[]'}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_user$project$IconSet$iconDoc,
-							model.mdl,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(slotName),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_debois$elm_mdl$Material_Button$render,
-									_user$project$Msg$Mdl,
-									{
-										ctor: '::',
-										_0: slotId,
-										_1: {ctor: '[]'}
-									},
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Button$fab,
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Button$minifab,
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Button$raised,
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Button$ripple,
-														_1: {
-															ctor: '::',
-															_0: _debois$elm_mdl$Material_Options$onClick(
-																_user$project$Msg$DeleteSlot(slotId)),
-															_1: {ctor: '[]'}
-														}
-													}
-												}
-											}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Icon$i('close'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}) : A2(
-					_debois$elm_mdl$Material_Options$div,
-					{ctor: '[]'},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-								_1: {ctor: '[]'}
-							}
-						},
-						A3(
-							_elm_lang$core$List$map2,
-							_user$project$Documentsview$doc2CardView(slotId),
-							model.docs,
-							A2(
-								_elm_lang$core$List$range,
-								1,
-								_elm_lang$core$List$length(model.docs)))),
-					_1: {ctor: '[]'}
-				}
-			});
+						_user$project$Request$termsPageRequest(topic)))));
 	});
 
 var _user$project$Init$initTerm = function (id) {
@@ -22747,6 +22288,8 @@ var _user$project$Init$init = {
 		answer: {terms: _elm_lang$core$Maybe$Nothing, docs: _elm_lang$core$Maybe$Nothing},
 		termsCache: A3(_user$project$ContainerCache$newContainerModel, _elm_lang$core$Array$empty, 10, _user$project$ContainerCache$defaultContainer),
 		termsDict: _elm_lang$core$Dict$empty,
+		docsCache: A3(_user$project$ContainerCache$newContainerModel, _elm_lang$core$Array$empty, 10, _user$project$ContainerCache$defaultContainer),
+		docsDict: _elm_lang$core$Dict$empty,
 		mdl: _debois$elm_mdl$Material$model
 	},
 	_1: _elm_lang$core$Platform_Cmd$batch(
@@ -22759,2033 +22302,6 @@ var _user$project$Init$init = {
 				_1: {ctor: '[]'}
 			}
 		})
-};
-
-var _user$project$Startpage$view = function (settings) {
-	return A2(
-		_debois$elm_mdl$Material_Options$div,
-		{
-			ctor: '::',
-			_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
-			_1: {
-				ctor: '::',
-				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
-				_1: {ctor: '[]'}
-			}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_debois$elm_mdl$Material_Options$div,
-				{
-					ctor: '::',
-					_0: _debois$elm_mdl$Material_Options$center,
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$cs('slot'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				},
-				{
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Card$view,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$cs('startpage-card'),
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$onClick(
-										_user$project$Msg$Open(_user$project$Model$ViewTopics)),
-									_1: {ctor: '[]'}
-								}
-							}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Card$text,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
-									_1: {ctor: '[]'}
-								},
-								{ctor: '[]'}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Card$title,
-									{ctor: '[]'},
-									{
-										ctor: '::',
-										_0: A2(
-											_debois$elm_mdl$Material_Card$head,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('View Topics'),
-												_1: {ctor: '[]'}
-											}),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_debois$elm_mdl$Material_Card$subhead,
-												{ctor: '[]'},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text('Browse topics to get an overview over the data.'),
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$center,
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('slot'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
-									_1: {ctor: '[]'}
-								}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Card$view,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$cs('startpage-card-disabled'),
-									_1: {ctor: '[]'}
-								}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Card$text,
-									{
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text('Comming Soon'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_debois$elm_mdl$Material_Card$title,
-										{ctor: '[]'},
-										{
-											ctor: '::',
-											_0: A2(
-												_debois$elm_mdl$Material_Card$head,
-												{ctor: '[]'},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text('Topic Statistics'),
-													_1: {ctor: '[]'}
-												}),
-											_1: {
-												ctor: '::',
-												_0: A2(
-													_debois$elm_mdl$Material_Card$subhead,
-													{ctor: '[]'},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text('Timelines and other Statistics about a Topic or all Topics.'),
-														_1: {ctor: '[]'}
-													}),
-												_1: {ctor: '[]'}
-											}
-										}),
-									_1: {ctor: '[]'}
-								}
-							}),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$center,
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$cs('slot'),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Card$view,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
-									_1: {
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('startpage-card-disabled'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: A2(
-										_debois$elm_mdl$Material_Card$text,
-										{
-											ctor: '::',
-											_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
-											_1: {ctor: '[]'}
-										},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text('Comming Soon'),
-											_1: {ctor: '[]'}
-										}),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_debois$elm_mdl$Material_Card$title,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: A2(
-													_debois$elm_mdl$Material_Card$head,
-													{ctor: '[]'},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text('Compare Topics'),
-														_1: {ctor: '[]'}
-													}),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_debois$elm_mdl$Material_Card$subhead,
-														{ctor: '[]'},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text('Compare two or more Topics and join Topics together.'),
-															_1: {ctor: '[]'}
-														}),
-													_1: {ctor: '[]'}
-												}
-											}),
-										_1: {ctor: '[]'}
-									}
-								}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-};
-
-var _user$project$Showdocumentview$document2DocumentView = function (document) {
-	return A2(
-		_debois$elm_mdl$Material_Options$div,
-		{
-			ctor: '::',
-			_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '0px 6px'),
-			_1: {
-				ctor: '::',
-				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 97px)'),
-				_1: {ctor: '[]'}
-			}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_debois$elm_mdl$Material_Options$span,
-				{
-					ctor: '::',
-					_0: A2(_debois$elm_mdl$Material_Options$css, 'float', 'right'),
-					_1: {
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '4px'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'color', 'grey'),
-							_1: {ctor: '[]'}
-						}
-					}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'id=',
-								_elm_lang$core$Basics$toString(document.id)),
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								' | date=',
-								_elm_lang$core$Basics$toString(document.time_stamp)))),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$br,
-							{ctor: '[]'},
-							{ctor: '[]'}),
-						_1: {ctor: '[]'}
-					}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$h1,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(document.title),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-y', 'auto'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'inherit'),
-								_1: {ctor: '[]'}
-							}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(document.fulltext),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-};
-var _user$project$Showdocumentview$view = F4(
-	function (model, document, flex, slotId) {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('slot'),
-				_1: {
-					ctor: '::',
-					_0: flex,
-					_1: {
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '0px 10px'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'box-shadow', '0 0 10px rgba(0, 0, 0, 0.80)'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Elevation$e0,
-								_1: {
-									ctor: '::',
-									_0: _user$project$IconSet$primaryColor,
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$center,
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_user$project$IconSet$iconDocument,
-							model.mdl,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(document.title),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_debois$elm_mdl$Material_Button$render,
-									_user$project$Msg$Mdl,
-									{
-										ctor: '::',
-										_0: slotId,
-										_1: {ctor: '[]'}
-									},
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Button$fab,
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Button$minifab,
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Button$raised,
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Button$ripple,
-														_1: {
-															ctor: '::',
-															_0: _debois$elm_mdl$Material_Options$onClick(
-																_user$project$Msg$DeleteSlot(slotId)),
-															_1: {ctor: '[]'}
-														}
-													}
-												}
-											}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Icon$i('close'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: _user$project$Showdocumentview$document2DocumentView(document),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-
-var _user$project$Topicsview$topic2Chip = F6(
-	function (model, mdl, settings, slotId, id, topic) {
-		return A2(
-			_debois$elm_mdl$Material_Chip$span,
-			{
-				ctor: '::',
-				_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 40px)'),
-				_1: {
-					ctor: '::',
-					_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '6px 4px'),
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$center,
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('item'),
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Chip$content,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100%'),
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$center,
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Options$span,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 58px)'),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'hidden'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-right', '10px'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Options$onClick(
-												_user$project$Msg$Batch(
-													{
-														ctor: '::',
-														_0: A3(
-															_user$project$Msg$ExecCmd,
-															slotId + 1,
-															'600px',
-															A5(
-																_user$project$Request$loadBestDocs,
-																_user$project$Msg$ReturnDocs(topic),
-																topic,
-																_elm_lang$core$Maybe$Nothing,
-																'RELEVANCE',
-																slotId + 1)),
-														_1: {
-															ctor: '::',
-															_0: A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1),
-															_1: {ctor: '[]'}
-														}
-													})),
-											_1: {ctor: '[]'}
-										}
-									}
-								}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Options$span,
-									{
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-right', '10px'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													'Topic ',
-													_elm_lang$core$Basics$toString(topic.id)),
-												': ')),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(
-										_elm_lang$core$String$concat(
-											A2(
-												_elm_lang$core$List$intersperse,
-												', ',
-												A2(
-													_elm_lang$core$List$take,
-													2,
-													A2(
-														_elm_lang$core$List$map,
-														function (_) {
-															return _.name;
-														},
-														topic.top_terms))))),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(' ... '),
-										_1: {ctor: '[]'}
-									}
-								}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$onClick(
-										A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1)),
-									_1: {
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$center,
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: A2(
-										_user$project$IconSet$iconTerm,
-										mdl,
-										A2(
-											_user$project$IconSet$iconHighlighted,
-											settings,
-											{ctor: '_Tuple2', _0: slotId, _1: id})),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Options$span,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$onClick(
-											A3(
-												_user$project$Msg$ExecCmd,
-												slotId + 1,
-												'300px',
-												A5(_user$project$Request$loadBestDocs, _user$project$Msg$NewDocs, topic, _elm_lang$core$Maybe$Nothing, 'RELEVANCE', slotId + 1))),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Options$center,
-											_1: {ctor: '[]'}
-										}
-									},
-									{
-										ctor: '::',
-										_0: A2(
-											_user$project$IconSet$iconDoc,
-											mdl,
-											A2(
-												_user$project$IconSet$iconHighlighted,
-												settings,
-												{ctor: '_Tuple2', _0: slotId, _1: id})),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
-var _user$project$Topicsview$view = F4(
-	function (model, flex, slotId, slotName) {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('slot'),
-				_1: {
-					ctor: '::',
-					_0: flex,
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Elevation$e0,
-						_1: {
-							ctor: '::',
-							_0: _user$project$IconSet$primaryColor,
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$center,
-								_1: {ctor: '[]'}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_user$project$IconSet$iconTopic,
-							model.mdl,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(slotName),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_debois$elm_mdl$Material_Button$render,
-									_user$project$Msg$Mdl,
-									{
-										ctor: '::',
-										_0: slotId,
-										_1: {ctor: '[]'}
-									},
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Button$fab,
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Button$minifab,
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Button$raised,
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Options$onClick(
-															_user$project$Msg$DeleteSlot(slotId)),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$core$Native_Utils.eq(slotId, 0) ? _debois$elm_mdl$Material_Options$disabled(true) : _debois$elm_mdl$Material_Options$disabled(false),
-															_1: {ctor: '[]'}
-														}
-													}
-												}
-											}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Icon$i('close'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-								_1: {ctor: '[]'}
-							}
-						},
-						A2(
-							_elm_lang$core$List$indexedMap,
-							A4(_user$project$Topicsview$topic2Chip, model, model.mdl, model.settings, slotId),
-							model.topics)),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-
-var _user$project$Termsview$terms2ListItem = F5(
-	function (mdl, settings, slotId, id, term) {
-		return A2(
-			_debois$elm_mdl$Material_List$li,
-			{
-				ctor: '::',
-				_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_List$content,
-					{
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$cs('item'),
-									_1: {
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$center,
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Options$span,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 48px)'),
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$onClick(
-										A3(
-											_user$project$Msg$ExecCmd,
-											slotId + 1,
-											'300px',
-											A5(
-												_user$project$Request$loadBestDocs,
-												_user$project$Msg$NewDocs,
-												_user$project$Topic$defaultTopic,
-												_elm_lang$core$Maybe$Just(term),
-												'RELEVANCE',
-												slotId + 1))),
-									_1: {ctor: '[]'}
-								}
-							},
-							{
-								ctor: '::',
-								_0: settings.showRelevance ? _elm_lang$html$Html$text(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										term.name,
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											' (',
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_elm_lang$core$Basics$toString(
-													A2(_elm_lang$core$Maybe$withDefault, 0, term.relevance)),
-												')')))) : _elm_lang$html$Html$text(term.name),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$onClick(
-										A3(
-											_user$project$Msg$ExecCmd,
-											slotId + 1,
-											'300px',
-											A2(_user$project$Request$loadAutocompleteTerms, term.name, slotId + 1))),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: A2(
-										_user$project$IconSet$iconTopic,
-										mdl,
-										A2(
-											_user$project$IconSet$iconHighlighted,
-											settings,
-											{ctor: '_Tuple2', _0: slotId, _1: id})),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Options$span,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$onClick(
-											A3(
-												_user$project$Msg$ExecCmd,
-												slotId + 1,
-												'300px',
-												A5(
-													_user$project$Request$loadBestDocs,
-													_user$project$Msg$NewDocs,
-													_user$project$Topic$defaultTopic,
-													_elm_lang$core$Maybe$Just(term),
-													'RELEVANCE',
-													slotId + 1))),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: A2(
-											_user$project$IconSet$iconDoc,
-											mdl,
-											A2(
-												_user$project$IconSet$iconHighlighted,
-												settings,
-												{ctor: '_Tuple2', _0: slotId, _1: id})),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
-var _user$project$Termsview$view = F5(
-	function (model, flex, slotId, slotName, withHead) {
-		var thisCM = model.termsCache;
-		var containerId = A2(
-			_elm_lang$core$Maybe$withDefault,
-			0,
-			A2(_elm_lang$core$Dict$get, slotName, model.termsDict));
-		var thisCache = A2(
-			_elm_lang$core$Maybe$withDefault,
-			_user$project$ContainerCache$defaultContainer,
-			A2(_elm_lang$core$Array$get, containerId, thisCM.arrayOfContainer));
-		var thisMeta = thisCache.meta;
-		var thisCurrPage = thisMeta.currPage;
-		var nextMeta = _elm_lang$core$Native_Utils.update(
-			thisMeta,
-			{currPage: thisCurrPage + 1});
-		var nextCache = _elm_lang$core$Native_Utils.update(
-			thisCache,
-			{meta: nextMeta});
-		var nextCM = _elm_lang$core$Native_Utils.update(
-			thisCM,
-			{
-				arrayOfContainer: _elm_lang$core$Array$fromList(
-					{
-						ctor: '::',
-						_0: nextCache,
-						_1: {ctor: '[]'}
-					})
-			});
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('slot'),
-				_1: {
-					ctor: '::',
-					_0: flex,
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Elevation$e0,
-						_1: {
-							ctor: '::',
-							_0: _user$project$IconSet$primaryColor,
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: withHead ? A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$center,
-								_1: {ctor: '[]'}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_user$project$IconSet$iconTerm,
-							model.mdl,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(slotName),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_debois$elm_mdl$Material_Button$render,
-									_user$project$Msg$Mdl,
-									{
-										ctor: '::',
-										_0: slotId,
-										_1: {ctor: '[]'}
-									},
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Button$fab,
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Button$minifab,
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Button$raised,
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Button$ripple,
-														_1: {
-															ctor: '::',
-															_0: _debois$elm_mdl$Material_Options$onClick(
-																_user$project$Msg$DeleteSlot(slotId)),
-															_1: {ctor: '[]'}
-														}
-													}
-												}
-											}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Icon$i('close'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}) : A2(
-					_debois$elm_mdl$Material_Options$div,
-					{ctor: '[]'},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_List$ul,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
-								_1: {ctor: '[]'}
-							}
-						},
-						_elm_lang$core$List$concat(
-							{
-								ctor: '::',
-								_0: _elm_lang$core$Native_Utils.eq(
-									A2(
-										_elm_lang$core$Maybe$withDefault,
-										_user$project$ContainerCache$defaultContainer,
-										A2(_elm_lang$core$Array$get, containerId, model.termsCache.arrayOfContainer)).meta.currPage,
-									0) ? {ctor: '[]'} : {
-									ctor: '::',
-									_0: A2(
-										_debois$elm_mdl$Material_List$li,
-										{ctor: '[]'},
-										{
-											ctor: '::',
-											_0: A2(
-												_debois$elm_mdl$Material_List$content,
-												{
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
-														_1: {
-															ctor: '::',
-															_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
-															_1: {
-																ctor: '::',
-																_0: _debois$elm_mdl$Material_Options$cs('item'),
-																_1: {
-																	ctor: '::',
-																	_0: _debois$elm_mdl$Material_Options$center,
-																	_1: {
-																		ctor: '::',
-																		_0: _debois$elm_mdl$Material_Options$onClick(
-																			_user$project$Msg$ManageTermsCache(
-																				A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$PrevPage))),
-																		_1: {ctor: '[]'}
-																	}
-																}
-															}
-														}
-													}
-												},
-												{
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Icon$i('expand_less'),
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										}),
-									_1: {ctor: '[]'}
-								},
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$core$List$indexedMap,
-										A3(_user$project$Termsview$terms2ListItem, model.mdl, model.settings, slotId),
-										model.terms),
-									_1: {
-										ctor: '::',
-										_0: function () {
-											var _p0 = A2(_user$project$ContainerCache$getCurrPageDataFromContainer, nextCM, containerId);
-											if (_p0.ctor === 'Just') {
-												if (_p0._0.ctor === '[]') {
-													return {ctor: '[]'};
-												} else {
-													return {
-														ctor: '::',
-														_0: A2(
-															_debois$elm_mdl$Material_List$li,
-															{ctor: '[]'},
-															{
-																ctor: '::',
-																_0: A2(
-																	_debois$elm_mdl$Material_List$content,
-																	{
-																		ctor: '::',
-																		_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
-																		_1: {
-																			ctor: '::',
-																			_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
-																			_1: {
-																				ctor: '::',
-																				_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
-																				_1: {
-																					ctor: '::',
-																					_0: _debois$elm_mdl$Material_Options$cs('item'),
-																					_1: {
-																						ctor: '::',
-																						_0: _debois$elm_mdl$Material_Options$center,
-																						_1: {
-																							ctor: '::',
-																							_0: _debois$elm_mdl$Material_Options$onClick(
-																								_user$project$Msg$ManageTermsCache(
-																									A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$NextPage))),
-																							_1: {ctor: '[]'}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	},
-																	{
-																		ctor: '::',
-																		_0: _debois$elm_mdl$Material_Icon$i('expand_more'),
-																		_1: {ctor: '[]'}
-																	}),
-																_1: {ctor: '[]'}
-															}),
-														_1: {ctor: '[]'}
-													};
-												}
-											} else {
-												return {ctor: '[]'};
-											}
-										}(),
-										_1: {ctor: '[]'}
-									}
-								}
-							})),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-
-var _user$project$TermsDocumentsview$view = F4(
-	function (model, flex, slotId, name) {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('slot'),
-				_1: {
-					ctor: '::',
-					_0: flex,
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Elevation$e0,
-						_1: {
-							ctor: '::',
-							_0: _user$project$IconSet$primaryColor,
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$center,
-							_1: {ctor: '[]'}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_user$project$IconSet$iconTopicDetail,
-							model.mdl,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
-										_1: {ctor: '[]'}
-									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(name),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_debois$elm_mdl$Material_Button$render,
-									_user$project$Msg$Mdl,
-									{
-										ctor: '::',
-										_0: slotId,
-										_1: {ctor: '[]'}
-									},
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Button$fab,
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Button$minifab,
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Button$raised,
-													_1: {
-														ctor: '::',
-														_0: _debois$elm_mdl$Material_Button$ripple,
-														_1: {
-															ctor: '::',
-															_0: _debois$elm_mdl$Material_Options$onClick(
-																_user$project$Msg$DeleteSlot(slotId)),
-															_1: {ctor: '[]'}
-														}
-													}
-												}
-											}
-										}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Icon$i('close'),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: A5(
-								_user$project$Termsview$view,
-								model,
-								A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 50%'),
-								slotId,
-								'',
-								false),
-							_1: {
-								ctor: '::',
-								_0: A5(
-									_user$project$Documentsview$view,
-									model,
-									A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 50%'),
-									slotId,
-									'',
-									false),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
-
-var _user$project$Searchview$li = F3(
-	function (icon, label, msg) {
-		return A2(
-			_debois$elm_mdl$Material_List$li,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Elevation$e4,
-				_1: {
-					ctor: '::',
-					_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '20px 0 20px 0'),
-					_1: {ctor: '[]'}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_List$content,
-					{
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$onClick(msg),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_List$icon,
-							icon,
-							{ctor: '[]'}),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(label),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
-var _user$project$Searchview$searchresult2ListItems = function (result) {
-	var _p0 = result;
-	switch (_p0.ctor) {
-		case 'TermResult':
-			var lia = function (a) {
-				return A3(
-					_user$project$Searchview$li,
-					'list',
-					a.name,
-					_user$project$Msg$Found(
-						A2(
-							_user$project$Model$TermsView,
-							'Terms',
-							{
-								ctor: '::',
-								_0: a,
-								_1: {ctor: '[]'}
-							})));
-			};
-			return A2(_elm_lang$core$List$map, lia, _p0._0);
-		case 'TopicResult':
-			var lia = function (a) {
-				return A3(
-					_user$project$Searchview$li,
-					'bubble_chart',
-					_elm_lang$core$Basics$toString(a.id),
-					_user$project$Msg$Found(
-						A2(
-							_user$project$Model$TopicsView,
-							'Topics',
-							{
-								ctor: '::',
-								_0: a,
-								_1: {ctor: '[]'}
-							})));
-			};
-			return A2(_elm_lang$core$List$map, lia, _p0._0);
-		default:
-			var _p1 = _p0._0;
-			return {
-				ctor: '::',
-				_0: A3(
-					_user$project$Searchview$li,
-					'art_track',
-					_p1.title,
-					_user$project$Msg$Found(
-						A2(
-							_user$project$Model$DocumentsView,
-							'Documents',
-							{
-								ctor: '::',
-								_0: _p1,
-								_1: {ctor: '[]'}
-							}))),
-				_1: {ctor: '[]'}
-			};
-	}
-};
-var _user$project$Searchview$advancedSearch = function (search4) {
-	return {
-		ctor: '::',
-		_0: function () {
-			if (A2(_elm_lang$core$String$startsWith, 'topic:', search4)) {
-				var search4topic = A2(_elm_lang$core$String$dropLeft, 6, search4);
-				return A3(
-					_user$project$Searchview$li,
-					'bubble_chart',
-					A2(_elm_lang$core$Basics_ops['++'], 'Search for Topics with ', search4topic),
-					A3(
-						_user$project$Msg$ExecCmd,
-						1,
-						'300px',
-						_user$project$Request$loadSearchTopics(search4topic)));
-			} else {
-				return A2(
-					_debois$elm_mdl$Material_Options$span,
-					{ctor: '[]'},
-					{ctor: '[]'});
-			}
-		}(),
-		_1: {
-			ctor: '::',
-			_0: function () {
-				if (A2(_elm_lang$core$String$startsWith, 'term:', search4)) {
-					var search4term = A2(_elm_lang$core$String$dropLeft, 5, search4);
-					return A3(
-						_user$project$Searchview$li,
-						'list',
-						A2(_elm_lang$core$Basics_ops['++'], 'Search for Terms with ', search4term),
-						A3(
-							_user$project$Msg$ExecCmd,
-							1,
-							'300px',
-							_user$project$Request$loadSearchTerms(search4term)));
-				} else {
-					return A2(
-						_debois$elm_mdl$Material_Options$span,
-						{ctor: '[]'},
-						{ctor: '[]'});
-				}
-			}(),
-			_1: {
-				ctor: '::',
-				_0: function () {
-					if (A2(_elm_lang$core$String$startsWith, 'document:', search4)) {
-						var search4doc = A2(_elm_lang$core$String$dropLeft, 9, search4);
-						return A3(
-							_user$project$Searchview$li,
-							'art_track',
-							A2(_elm_lang$core$Basics_ops['++'], 'Search for Documents with ', search4doc),
-							A3(
-								_user$project$Msg$ExecCmd,
-								1,
-								'300px',
-								A3(_user$project$Request$loadSearchDocs, search4doc, false, 'RELEVANCE')));
-					} else {
-						return A2(
-							_debois$elm_mdl$Material_Options$span,
-							{ctor: '[]'},
-							{ctor: '[]'});
-					}
-				}(),
-				_1: {ctor: '[]'}
-			}
-		}
-	};
-};
-var _user$project$Searchview$view = F2(
-	function (model, flex) {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Options$cs('search_results'),
-				_1: {
-					ctor: '::',
-					_0: _user$project$IconSet$primaryColor,
-					_1: {ctor: '[]'}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_List$ul,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'auto'),
-						_1: {ctor: '[]'}
-					},
-					_user$project$Searchview$searchresult2ListItems(model.settings.searchResult)),
-				_1: {ctor: '[]'}
-			});
-	});
-
-var _user$project$Mainview_v4$slot = F3(
-	function (model, slotId, view) {
-		var _p0 = view;
-		switch (_p0.ctor) {
-			case 'TopicsView':
-				return A4(
-					_user$project$Topicsview$view,
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{topics: _p0._1}),
-					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
-					slotId,
-					_p0._0);
-			case 'TermsDocumentsView':
-				return A4(
-					_user$project$TermsDocumentsview$view,
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{terms: _p0._1, docs: _p0._2}),
-					A2(_debois$elm_mdl$Material_Options$css, 'width', '600px'),
-					slotId,
-					_p0._0);
-			case 'TermsView':
-				return A5(
-					_user$project$Termsview$view,
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{terms: _p0._1}),
-					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
-					slotId,
-					_p0._0,
-					true);
-			case 'DocumentsView':
-				return A5(
-					_user$project$Documentsview$view,
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{docs: _p0._1}),
-					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
-					slotId,
-					_p0._0,
-					true);
-			case 'ShowdocumentView':
-				return A4(
-					_user$project$Showdocumentview$view,
-					model,
-					_p0._0,
-					A2(_debois$elm_mdl$Material_Options$css, 'width', '1000px'),
-					slotId);
-			case 'TermsContainerSlot':
-				var _p2 = _p0._0;
-				var inContainer = A2(
-					_user$project$ContainerCache$getCurrPageDataFromContainer,
-					model.termsCache,
-					A2(
-						_elm_lang$core$Maybe$withDefault,
-						0,
-						A2(_elm_lang$core$Dict$get, _p2, model.termsDict)));
-				var _p1 = inContainer;
-				if (_p1.ctor === 'Just') {
-					return A5(
-						_user$project$Termsview$view,
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{terms: _p1._0}),
-						A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
-						slotId,
-						_p2,
-						true);
-				} else {
-					return A2(
-						_debois$elm_mdl$Material_Options$div,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('slot'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
-								_1: {
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Elevation$e0,
-									_1: {
-										ctor: '::',
-										_0: _user$project$IconSet$primaryColor,
-										_1: {
-											ctor: '::',
-											_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-											_1: {
-												ctor: '::',
-												_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 5px)'),
-												_1: {ctor: '[]'}
-											}
-										}
-									}
-								}
-							}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '12px'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('loading...'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_debois$elm_mdl$Material_Options$span,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$cs('loading'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Spinner$spinner(
-											{
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Spinner$active(true),
-												_1: {
-													ctor: '::',
-													_0: _debois$elm_mdl$Material_Spinner$singleColor(true),
-													_1: {ctor: '[]'}
-												}
-											}),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						});
-				}
-			case 'Empty':
-				return A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Options$cs('slot'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'width', _p0._0),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Elevation$e0,
-								_1: {
-									ctor: '::',
-									_0: _user$project$IconSet$primaryColor,
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
-										_1: {
-											ctor: '::',
-											_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 5px)'),
-											_1: {ctor: '[]'}
-										}
-									}
-								}
-							}
-						}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Options$span,
-							{
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '12px'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('loading...'),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_debois$elm_mdl$Material_Options$span,
-								{
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Options$cs('loading'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _debois$elm_mdl$Material_Spinner$spinner(
-										{
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Spinner$active(true),
-											_1: {
-												ctor: '::',
-												_0: _debois$elm_mdl$Material_Spinner$singleColor(true),
-												_1: {ctor: '[]'}
-											}
-										}),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
-					});
-			default:
-				return A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100px'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text('Error'),
-						_1: {ctor: '[]'}
-					});
-		}
-	});
-var _user$project$Mainview_v4$viewBody = function (model) {
-	var _p3 = model.settings.frame;
-	if (_p3.ctor === 'Startpage') {
-		return _user$project$Startpage$view(model.settings);
-	} else {
-		return A2(
-			_debois$elm_mdl$Material_Options$div,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Elevation$e4,
-				_1: {
-					ctor: '::',
-					_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
-					_1: {
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
-						_1: {ctor: '[]'}
-					}
-				}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_debois$elm_mdl$Material_Options$div,
-					{
-						ctor: '::',
-						_0: A2(_debois$elm_mdl$Material_Options$css, 'white-space', 'nowrap'),
-						_1: {
-							ctor: '::',
-							_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-block'),
-							_1: {
-								ctor: '::',
-								_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-y', 'hidden'),
-								_1: {
-									ctor: '::',
-									_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-x', 'auto'),
-									_1: {
-										ctor: '::',
-										_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
-										_1: {
-											ctor: '::',
-											_0: _debois$elm_mdl$Material_Options$id('board'),
-											_1: {ctor: '[]'}
-										}
-									}
-								}
-							}
-						}
-					},
-					A2(
-						_elm_lang$core$List$indexedMap,
-						_user$project$Mainview_v4$slot(model),
-						model.slots)),
-				_1: {ctor: '[]'}
-			});
-	}
-};
-var _user$project$Mainview_v4$viewSwitch = function (model) {
-	var oldSettings = model.settings;
-	return A2(
-		_debois$elm_mdl$Material_Options$div,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$h3,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Einstellungen'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {ctor: '[]'}
-		});
-};
-var _user$project$Mainview_v4$onEnterPressed = function (msg) {
-	var isEnter = function (code) {
-		return _elm_lang$core$Native_Utils.eq(code, 13) ? _elm_lang$core$Json_Decode$succeed(msg) : _elm_lang$core$Json_Decode$fail('not ENTER');
-	};
-	return A2(
-		_debois$elm_mdl$Material_Options$on,
-		'keydown',
-		A2(_elm_lang$core$Json_Decode$andThen, isEnter, _elm_lang$html$Html_Events$keyCode));
-};
-var _user$project$Mainview_v4$viewSearch = function (model) {
-	return A2(
-		_debois$elm_mdl$Material_Options$span,
-		{
-			ctor: '::',
-			_0: _debois$elm_mdl$Material_Options$cs('search_box'),
-			_1: {
-				ctor: '::',
-				_0: _user$project$IconSet$primaryColor,
-				_1: {ctor: '[]'}
-			}
-		},
-		{
-			ctor: '::',
-			_0: A5(
-				_debois$elm_mdl$Material_Textfield$render,
-				_user$project$Msg$Mdl,
-				{
-					ctor: '::',
-					_0: 7,
-					_1: {ctor: '[]'}
-				},
-				model.mdl,
-				{
-					ctor: '::',
-					_0: _debois$elm_mdl$Material_Textfield$label('Search'),
-					_1: {
-						ctor: '::',
-						_0: _debois$elm_mdl$Material_Textfield$floatingLabel,
-						_1: {
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Textfield$text_,
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$onInput(_user$project$Msg$Search),
-								_1: {
-									ctor: '::',
-									_0: _user$project$Mainview_v4$onEnterPressed(
-										_user$project$Msg$AdvancedSearch(model.settings.search4)),
-									_1: {
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$dispatch(_user$project$Msg$Batch),
-										_1: {ctor: '[]'}
-									}
-								}
-							}
-						}
-					}
-				},
-				{ctor: '[]'}),
-			_1: {ctor: '[]'}
-		});
-};
-var _user$project$Mainview_v4$view = function (model) {
-	var settings = model.settings;
-	return A3(
-		_debois$elm_mdl$Material_Scheme$topWithScheme,
-		_debois$elm_mdl$Material_Color$Green,
-		_debois$elm_mdl$Material_Color$Orange,
-		A4(
-			_debois$elm_mdl$Material_Layout$render,
-			_user$project$Msg$Mdl,
-			model.mdl,
-			{
-				ctor: '::',
-				_0: _debois$elm_mdl$Material_Layout$fixedHeader,
-				_1: {ctor: '[]'}
-			},
-			{
-				header: _elm_lang$core$Native_Utils.eq(settings.error, '') ? {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$span,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _user$project$Mainview_v4$viewSearch(model),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_user$project$IconSet$iconHome,
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$onClick(
-											_user$project$Msg$Open(_user$project$Model$Startpage)),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {ctor: '[]'}
-				} : {
-					ctor: '::',
-					_0: A2(
-						_debois$elm_mdl$Material_Options$span,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _user$project$Mainview_v4$viewSearch(model),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_user$project$IconSet$iconHome,
-									model.mdl,
-									{
-										ctor: '::',
-										_0: _debois$elm_mdl$Material_Options$onClick(
-											_user$project$Msg$Open(_user$project$Model$Startpage)),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_debois$elm_mdl$Material_Options$span,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(settings.error),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				},
-				drawer: {
-					ctor: '::',
-					_0: _user$project$Mainview_v4$viewSwitch(model),
-					_1: {ctor: '[]'}
-				},
-				tabs: {
-					ctor: '_Tuple2',
-					_0: {ctor: '[]'},
-					_1: {ctor: '[]'}
-				},
-				main: {
-					ctor: '::',
-					_0: settings.search ? A2(
-						_debois$elm_mdl$Material_Options$span,
-						{
-							ctor: '::',
-							_0: _debois$elm_mdl$Material_Options$cs('search_overlay'),
-							_1: {
-								ctor: '::',
-								_0: _debois$elm_mdl$Material_Options$onClick(_user$project$Msg$ResetSettings),
-								_1: {ctor: '[]'}
-							}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_user$project$Searchview$view,
-								model,
-								A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 100%')),
-							_1: {ctor: '[]'}
-						}) : A2(
-						_debois$elm_mdl$Material_Options$span,
-						{ctor: '[]'},
-						{ctor: '[]'}),
-					_1: {
-						ctor: '::',
-						_0: _user$project$Mainview_v4$viewBody(model),
-						_1: {ctor: '[]'}
-					}
-				}
-			}));
 };
 
 var _vipentti$elm_dispatch$Dispatch$split = F4(
@@ -25107,6 +22623,22 @@ var _vipentti$elm_dispatch$Dispatch$clear = function (_p30) {
 			}));
 };
 
+var _user$project$Update$scroll2Bottom = function (id) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		function (a) {
+			return _user$project$Msg$None;
+		},
+		_elm_lang$dom$Dom_Scroll$toBottom(id));
+};
+var _user$project$Update$scroll2Top = function (id) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		function (a) {
+			return _user$project$Msg$None;
+		},
+		_elm_lang$dom$Dom_Scroll$toTop(id));
+};
 var _user$project$Update$scroll2Right = A2(
 	_elm_lang$core$Task$attempt,
 	function (a) {
@@ -25838,29 +23370,30 @@ var _user$project$Update$update = F2(
 						};
 					}
 				case 'ExecCmd':
+					var _p27 = _p0._0;
+					var newSlot = (_elm_lang$core$Native_Utils.cmp(_p27, 0) > -1) ? A2(
+						_elm_lang$core$List$append,
+						A2(_elm_lang$core$List$take, _p27, model.slots),
+						{
+							ctor: '::',
+							_0: _user$project$Model$Empty(_p0._1),
+							_1: {ctor: '[]'}
+						}) : model.slots;
 					var oldSettings = model.settings;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{
-								slots: A2(
-									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p0._0, model.slots),
-									{
-										ctor: '::',
-										_0: _user$project$Model$Empty(_p0._1),
-										_1: {ctor: '[]'}
-									})
-							}),
+							{slots: newSlot}),
 						_1: _p0._2
 					};
-				case 'NewTermContainerSlot':
-					var _p28 = _p0._1;
-					var _p27 = _p0._0;
+				case 'NewTermsContainerSlot':
+					var _p30 = _p0._2;
+					var _p29 = _p0._1;
+					var _p28 = _p0._0;
 					var oldDict = model.termsDict;
 					var oldSettings = model.settings;
-					if (A2(_elm_lang$core$Dict$member, _p27, oldDict)) {
+					if (A2(_elm_lang$core$Dict$member, _p28, oldDict)) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -25868,29 +23401,29 @@ var _user$project$Update$update = F2(
 								{
 									slots: A2(
 										_elm_lang$core$List$append,
-										A2(_elm_lang$core$List$take, _p28, model.slots),
+										A2(_elm_lang$core$List$take, _p30, model.slots),
 										{
 											ctor: '::',
-											_0: _user$project$Model$TermsContainerSlot(_p27),
+											_0: A2(_user$project$Model$TermsContainerSlot, _p28, _p29),
 											_1: {ctor: '[]'}
 										})
 								}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
-						var _v18 = _p0._3,
+						var _v18 = _p0._4,
 							_v19 = _elm_lang$core$Native_Utils.update(
 							model,
 							{
 								slots: A2(
 									_elm_lang$core$List$append,
-									A2(_elm_lang$core$List$take, _p28, model.slots),
+									A2(_elm_lang$core$List$take, _p30, model.slots),
 									{
 										ctor: '::',
-										_0: _user$project$Model$TermsContainerSlot(_p27),
+										_0: A2(_user$project$Model$TermsContainerSlot, _p28, _p29),
 										_1: {ctor: '[]'}
 									}),
-								termsDict: A3(_elm_lang$core$Dict$insert, _p27, _p0._2, oldDict)
+								termsDict: A3(_elm_lang$core$Dict$insert, _p28, _p0._3, oldDict)
 							});
 						msg = _v18;
 						model = _v19;
@@ -25898,9 +23431,9 @@ var _user$project$Update$update = F2(
 					}
 				case 'ManageTermsCache':
 					var oldSettings = model.settings;
-					var _p29 = A2(_user$project$ContainerCache$update, _p0._0, model.termsCache);
-					var newdata = _p29._0;
-					var cmd = _p29._1;
+					var _p31 = A2(_user$project$ContainerCache$update, _p0._0, model.termsCache);
+					var newdata = _p31._0;
+					var cmd = _p31._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -25912,6 +23445,64 @@ var _user$project$Update$update = F2(
 									{error: ''})
 							}),
 						_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Msg$ManageTermsCache, cmd)
+					};
+				case 'NewDocsContainerSlot':
+					var _p33 = _p0._1;
+					var _p32 = _p0._0;
+					var oldDict = model.docsDict;
+					var oldSettings = model.settings;
+					if (A2(_elm_lang$core$Dict$member, _p32, oldDict)) {
+						return {
+							ctor: '_Tuple2',
+							_0: _elm_lang$core$Native_Utils.update(
+								model,
+								{
+									slots: A2(
+										_elm_lang$core$List$append,
+										A2(_elm_lang$core$List$take, _p33, model.slots),
+										{
+											ctor: '::',
+											_0: _user$project$Model$DocsContainerSlot(_p32),
+											_1: {ctor: '[]'}
+										})
+								}),
+							_1: _elm_lang$core$Platform_Cmd$none
+						};
+					} else {
+						var _v20 = _p0._3,
+							_v21 = _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: A2(
+									_elm_lang$core$List$append,
+									A2(_elm_lang$core$List$take, _p33, model.slots),
+									{
+										ctor: '::',
+										_0: _user$project$Model$DocsContainerSlot(_p32),
+										_1: {ctor: '[]'}
+									}),
+								docsDict: A3(_elm_lang$core$Dict$insert, _p32, _p0._2, oldDict)
+							});
+						msg = _v20;
+						model = _v21;
+						continue update;
+					}
+				case 'ManageDocsCache':
+					var oldSettings = model.settings;
+					var _p34 = A2(_user$project$ContainerCache$update, _p0._0, model.docsCache);
+					var newdata = _p34._0;
+					var cmd = _p34._1;
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								docsCache: newdata,
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{error: ''})
+							}),
+						_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Msg$ManageDocsCache, cmd)
 					};
 				case 'Batch':
 					return A2(
@@ -25929,6 +23520,2645 @@ var _user$project$Update$update = F2(
 			}
 		}
 	});
+
+var _user$project$IconSet$generalBackgroundColor = _debois$elm_mdl$Material_Options$cs('generalBackgroundColor');
+var _user$project$IconSet$primaryColor = _debois$elm_mdl$Material_Options$cs('primaryColor');
+var _user$project$IconSet$iconHighlighted = F2(
+	function (settings, id) {
+		return {ctor: '[]'};
+	});
+var _user$project$IconSet$loadingView = function (width) {
+	return A2(
+		_debois$elm_mdl$Material_Options$div,
+		{
+			ctor: '::',
+			_0: _debois$elm_mdl$Material_Options$cs('slot'),
+			_1: {
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'width', width),
+				_1: {
+					ctor: '::',
+					_0: _debois$elm_mdl$Material_Elevation$e0,
+					_1: {
+						ctor: '::',
+						_0: _user$project$IconSet$primaryColor,
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 5px)'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_debois$elm_mdl$Material_Options$span,
+				{
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '12px'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('loading...'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$span,
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$cs('loading'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Spinner$spinner(
+							{
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Spinner$active(true),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Spinner$singleColor(true),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$IconSet$moveActions = F7(
+	function (cacheMsg, cache, containerId, slotId, actionHtml, actionStyle, innerHtml) {
+		var thisCM = cache;
+		var thisCache = A2(
+			_elm_lang$core$Maybe$withDefault,
+			_user$project$ContainerCache$defaultContainer,
+			A2(_elm_lang$core$Array$get, containerId, thisCM.arrayOfContainer));
+		var thisMeta = thisCache.meta;
+		var thisCurrPage = thisMeta.currPage;
+		var nextMeta = _elm_lang$core$Native_Utils.update(
+			thisMeta,
+			{currPage: thisCurrPage + 1});
+		var nextCache = _elm_lang$core$Native_Utils.update(
+			thisCache,
+			{meta: nextMeta});
+		var nextCM = _elm_lang$core$Native_Utils.update(
+			thisCM,
+			{
+				arrayOfContainer: _elm_lang$core$Array$fromList(
+					{
+						ctor: '::',
+						_0: nextCache,
+						_1: {ctor: '[]'}
+					})
+			});
+		return _elm_lang$core$List$concat(
+			{
+				ctor: '::',
+				_0: _elm_lang$core$Native_Utils.eq(
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						_user$project$ContainerCache$defaultContainer,
+						A2(_elm_lang$core$Array$get, containerId, cache.arrayOfContainer)).meta.currPage,
+					0) ? {ctor: '[]'} : {
+					ctor: '::',
+					_0: A2(
+						actionHtml,
+						A2(
+							_elm_lang$core$List$append,
+							actionStyle,
+							{
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$center,
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'cursor', 'pointer'),
+									_1: {
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											_user$project$Msg$Batch(
+												{
+													ctor: '::',
+													_0: cacheMsg(
+														A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$PrevPage)),
+													_1: {
+														ctor: '::',
+														_0: A3(
+															_user$project$Msg$ExecCmd,
+															-1,
+															'',
+															_user$project$Update$scroll2Bottom(
+																A2(
+																	_elm_lang$core$Basics_ops['++'],
+																	'slot',
+																	_elm_lang$core$Basics$toString(slotId)))),
+														_1: {ctor: '[]'}
+													}
+												})),
+										_1: {ctor: '[]'}
+									}
+								}
+							}),
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Icon$i('expand_less'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				},
+				_1: {
+					ctor: '::',
+					_0: innerHtml,
+					_1: {
+						ctor: '::',
+						_0: function () {
+							var _p0 = A2(_user$project$ContainerCache$getCurrPageDataFromContainer, nextCM, containerId);
+							if ((_p0.ctor === 'Just') && (_p0._0.ctor === '[]')) {
+								return {ctor: '[]'};
+							} else {
+								return {
+									ctor: '::',
+									_0: A2(
+										actionHtml,
+										A2(
+											_elm_lang$core$List$append,
+											actionStyle,
+											{
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Options$center,
+												_1: {
+													ctor: '::',
+													_0: A2(_debois$elm_mdl$Material_Options$css, 'cursor', 'pointer'),
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Options$onClick(
+															_user$project$Msg$Batch(
+																{
+																	ctor: '::',
+																	_0: cacheMsg(
+																		A2(_user$project$ContainerCache$PageUpdate, containerId, _user$project$ContainerCache$NextPage)),
+																	_1: {
+																		ctor: '::',
+																		_0: A3(
+																			_user$project$Msg$ExecCmd,
+																			-1,
+																			'',
+																			_user$project$Update$scroll2Top(
+																				A2(
+																					_elm_lang$core$Basics_ops['++'],
+																					'slot',
+																					_elm_lang$core$Basics$toString(slotId)))),
+																		_1: {ctor: '[]'}
+																	}
+																})),
+														_1: {ctor: '[]'}
+													}
+												}
+											}),
+										{
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Icon$i('expand_more'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								};
+							}
+						}(),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	});
+var _user$project$IconSet$iconDocument = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'description',
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Tooltip$attach,
+							_user$project$Msg$Mdl,
+							{
+								ctor: '::',
+								_0: 4,
+								_1: {ctor: '[]'}
+							}),
+						_1: args
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 4,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('document'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$IconSet$iconDoc = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'description',
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Tooltip$attach,
+							_user$project$Msg$Mdl,
+							{
+								ctor: '::',
+								_0: 4,
+								_1: {ctor: '[]'}
+							}),
+						_1: args
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 4,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('doc'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$IconSet$iconTerm = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'list',
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Tooltip$attach,
+							_user$project$Msg$Mdl,
+							{
+								ctor: '::',
+								_0: 3,
+								_1: {ctor: '[]'}
+							}),
+						_1: args
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 3,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('term'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$IconSet$iconTopicDetail = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'tablet',
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Tooltip$attach,
+							_user$project$Msg$Mdl,
+							{
+								ctor: '::',
+								_0: 2,
+								_1: {ctor: '[]'}
+							}),
+						_1: args
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 2,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('topic details'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$IconSet$iconTopic = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'subject',
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Tooltip$attach,
+							_user$project$Msg$Mdl,
+							{
+								ctor: '::',
+								_0: 1,
+								_1: {ctor: '[]'}
+							}),
+						_1: args
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 1,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('topic'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$IconSet$iconHome = F2(
+	function (mdl, args) {
+		return A2(
+			_debois$elm_mdl$Material_Options$span,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('homeIcon'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Icon$view,
+					'home',
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Icon$size48,
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Tooltip$attach,
+								_user$project$Msg$Mdl,
+								{
+									ctor: '::',
+									_0: 0,
+									_1: {ctor: '[]'}
+								}),
+							_1: args
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A5(
+						_debois$elm_mdl$Material_Tooltip$render,
+						_user$project$Msg$Mdl,
+						{
+							ctor: '::',
+							_0: 0,
+							_1: {ctor: '[]'}
+						},
+						mdl,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'position', 'relative'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('home'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$Documentsview$doc2CardView = F3(
+	function (slotId, doc, cardID) {
+		return A2(
+			_debois$elm_mdl$Material_Card$view,
+			{
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '120px'),
+				_1: {
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '94%'),
+					_1: {
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '4% 8% 4% 3%'),
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Color$background(_debois$elm_mdl$Material_Color$primary),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Elevation$e0,
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onClick(
+										A3(
+											_user$project$Msg$ExecCmd,
+											slotId + 1,
+											'1000px',
+											A2(_user$project$Request$loadDoc, slotId + 1, doc))),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Card$title,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '4px'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Card$head,
+							{
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Color$text(_debois$elm_mdl$Material_Color$white),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '14px'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100%'),
+										_1: {ctor: '[]'}
+									}
+								}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Options$span,
+									{
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 48px)'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(doc.title),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Color$text(
+										A2(_debois$elm_mdl$Material_Color$color, _debois$elm_mdl$Material_Color$Grey, _debois$elm_mdl$Material_Color$S200)),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '2px'),
+										_1: {
+											ctor: '::',
+											_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '8px'),
+											_1: {
+												ctor: '::',
+												_0: A2(_debois$elm_mdl$Material_Options$css, 'align-self', 'right'),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												'id=',
+												_elm_lang$core$Basics$toString(doc.id)),
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												' | date=',
+												_elm_lang$core$Basics$toString(doc.time_stamp)))),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Card$text,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Color$text(_debois$elm_mdl$Material_Color$white),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '4px'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'font-size', '10px'),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(doc.snippet),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+var _user$project$Documentsview$view = F5(
+	function (model, flex, slotId, slotName, withHead) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('slot'),
+				_1: {
+					ctor: '::',
+					_0: flex,
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Elevation$e0,
+						_1: {
+							ctor: '::',
+							_0: _user$project$IconSet$primaryColor,
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: withHead ? A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$center,
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_user$project$IconSet$iconDoc,
+							model.mdl,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(slotName),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_debois$elm_mdl$Material_Button$render,
+									_user$project$Msg$Mdl,
+									{
+										ctor: '::',
+										_0: slotId,
+										_1: {ctor: '[]'}
+									},
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Button$fab,
+											_1: {
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Button$minifab,
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Button$raised,
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Button$ripple,
+														_1: {
+															ctor: '::',
+															_0: _debois$elm_mdl$Material_Options$onClick(
+																_user$project$Msg$DeleteSlot(slotId)),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Icon$i('close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}) : A2(
+					_debois$elm_mdl$Material_Options$div,
+					{ctor: '[]'},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$id(
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											'slot',
+											_elm_lang$core$Basics$toString(slotId))),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						A7(
+							_user$project$IconSet$moveActions,
+							_user$project$Msg$ManageDocsCache,
+							model.docsCache,
+							A2(
+								_elm_lang$core$Maybe$withDefault,
+								0,
+								A2(_elm_lang$core$Dict$get, slotName, model.docsDict)),
+							slotId,
+							F2(
+								function (x, y) {
+									return A2(
+										_debois$elm_mdl$Material_Card$view,
+										{
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Color$background(_debois$elm_mdl$Material_Color$primary),
+											_1: {
+												ctor: '::',
+												_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '94%'),
+												_1: {
+													ctor: '::',
+													_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '4% 8% 4% 3%'),
+													_1: {ctor: '[]'}
+												}
+											}
+										},
+										{
+											ctor: '::',
+											_0: A2(_debois$elm_mdl$Material_Card$title, x, y),
+											_1: {ctor: '[]'}
+										});
+								}),
+							{ctor: '[]'},
+							A3(
+								_elm_lang$core$List$map2,
+								_user$project$Documentsview$doc2CardView(slotId),
+								model.docs,
+								A2(
+									_elm_lang$core$List$range,
+									1,
+									_elm_lang$core$List$length(model.docs))))),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$Startpage$view = function (settings) {
+	return A2(
+		_debois$elm_mdl$Material_Options$div,
+		{
+			ctor: '::',
+			_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
+			_1: {
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_debois$elm_mdl$Material_Options$div,
+				{
+					ctor: '::',
+					_0: _debois$elm_mdl$Material_Options$center,
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$cs('slot'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Card$view,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$cs('startpage-card'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onClick(
+										_user$project$Msg$Open(_user$project$Model$ViewTopics)),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Card$text,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
+									_1: {ctor: '[]'}
+								},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Card$title,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_debois$elm_mdl$Material_Card$head,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('View Topics'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_debois$elm_mdl$Material_Card$subhead,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Browse topics to get an overview over the data.'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$center,
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('slot'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Card$view,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$cs('startpage-card-disabled'),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Card$text,
+									{
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Comming Soon'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_debois$elm_mdl$Material_Card$title,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(
+												_debois$elm_mdl$Material_Card$head,
+												{ctor: '[]'},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Topic Statistics'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_debois$elm_mdl$Material_Card$subhead,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Timelines and other Statistics about a Topic or all Topics.'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$center,
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$cs('slot'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'heigth', '100%'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-top', '-50px'),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Card$view,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '400px'),
+									_1: {
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('startpage-card-disabled'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_debois$elm_mdl$Material_Card$text,
+										{
+											ctor: '::',
+											_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '225px'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Comming Soon'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_debois$elm_mdl$Material_Card$title,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: A2(
+													_debois$elm_mdl$Material_Card$head,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Compare Topics'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_debois$elm_mdl$Material_Card$subhead,
+														{ctor: '[]'},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('Compare two or more Topics and join Topics together.'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+
+var _user$project$Showdocumentview$document2DocumentView = function (document) {
+	return A2(
+		_debois$elm_mdl$Material_Options$div,
+		{
+			ctor: '::',
+			_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '0px 6px'),
+			_1: {
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'calc(100% - 97px)'),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_debois$elm_mdl$Material_Options$span,
+				{
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'float', 'right'),
+					_1: {
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '4px'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'color', 'grey'),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'id=',
+								_elm_lang$core$Basics$toString(document.id)),
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								' | date=',
+								_elm_lang$core$Basics$toString(document.time_stamp)))),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$br,
+							{ctor: '[]'},
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h1,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(document.title),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-y', 'auto'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'height', 'inherit'),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(document.fulltext),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$Showdocumentview$view = F4(
+	function (model, document, flex, slotId) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('slot'),
+				_1: {
+					ctor: '::',
+					_0: flex,
+					_1: {
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'padding', '0px 10px'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'box-shadow', '0 0 10px rgba(0, 0, 0, 0.80)'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Elevation$e0,
+								_1: {
+									ctor: '::',
+									_0: _user$project$IconSet$primaryColor,
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$center,
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_user$project$IconSet$iconDocument,
+							model.mdl,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(document.title),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_debois$elm_mdl$Material_Button$render,
+									_user$project$Msg$Mdl,
+									{
+										ctor: '::',
+										_0: slotId,
+										_1: {ctor: '[]'}
+									},
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Button$fab,
+											_1: {
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Button$minifab,
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Button$raised,
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Button$ripple,
+														_1: {
+															ctor: '::',
+															_0: _debois$elm_mdl$Material_Options$onClick(
+																_user$project$Msg$DeleteSlot(slotId)),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Icon$i('close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Showdocumentview$document2DocumentView(document),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$Topicsview$topic2Chip = F6(
+	function (model, mdl, settings, slotId, id, topic) {
+		return A2(
+			_debois$elm_mdl$Material_Chip$span,
+			{
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 40px)'),
+				_1: {
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '6px 4px'),
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$center,
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('item'),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Chip$content,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100%'),
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$center,
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Options$span,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 58px)'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'hidden'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-right', '10px'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Options$onClick(
+												_user$project$Msg$Batch(
+													{
+														ctor: '::',
+														_0: A4(_user$project$Request$createNewDocsContainer, model, topic, _elm_lang$core$Maybe$Nothing, slotId + 1),
+														_1: {
+															ctor: '::',
+															_0: A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1),
+															_1: {ctor: '[]'}
+														}
+													})),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Options$span,
+									{
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'margin-right', '10px'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													'Topic ',
+													_elm_lang$core$Basics$toString(topic.id)),
+												': ')),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										_elm_lang$core$String$concat(
+											A2(
+												_elm_lang$core$List$intersperse,
+												', ',
+												A2(
+													_elm_lang$core$List$take,
+													2,
+													A2(
+														_elm_lang$core$List$map,
+														function (_) {
+															return _.name;
+														},
+														topic.top_terms))))),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(' ... '),
+										_1: {ctor: '[]'}
+									}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onClick(
+										A3(_user$project$Request$createNewTermsContainer, model, topic, slotId + 1)),
+									_1: {
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$center,
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_user$project$IconSet$iconTerm,
+										mdl,
+										A2(
+											_user$project$IconSet$iconHighlighted,
+											settings,
+											{ctor: '_Tuple2', _0: slotId, _1: id})),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Options$span,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											A4(_user$project$Request$createNewDocsContainer, model, topic, _elm_lang$core$Maybe$Nothing, slotId + 1)),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Options$center,
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_user$project$IconSet$iconDoc,
+											mdl,
+											A2(
+												_user$project$IconSet$iconHighlighted,
+												settings,
+												{ctor: '_Tuple2', _0: slotId, _1: id})),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$Topicsview$view = F4(
+	function (model, flex, slotId, slotName) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('slot'),
+				_1: {
+					ctor: '::',
+					_0: flex,
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Elevation$e0,
+						_1: {
+							ctor: '::',
+							_0: _user$project$IconSet$primaryColor,
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$center,
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_user$project$IconSet$iconTopic,
+							model.mdl,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(slotName),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_debois$elm_mdl$Material_Button$render,
+									_user$project$Msg$Mdl,
+									{
+										ctor: '::',
+										_0: slotId,
+										_1: {ctor: '[]'}
+									},
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Button$fab,
+											_1: {
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Button$minifab,
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Button$raised,
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Options$onClick(
+															_user$project$Msg$DeleteSlot(slotId)),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$core$Native_Utils.eq(slotId, 0) ? _debois$elm_mdl$Material_Options$disabled(true) : _debois$elm_mdl$Material_Options$disabled(false),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Icon$i('close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+								_1: {ctor: '[]'}
+							}
+						},
+						A2(
+							_elm_lang$core$List$indexedMap,
+							A4(_user$project$Topicsview$topic2Chip, model, model.mdl, model.settings, slotId),
+							model.topics)),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$Termsview$terms2ListItem = F5(
+	function (model, parent, slotId, id, term) {
+		return A2(
+			_debois$elm_mdl$Material_List$li,
+			{
+				ctor: '::',
+				_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_List$content,
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$cs('item'),
+									_1: {
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$center,
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Options$span,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 48px)'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onClick(
+										A4(
+											_user$project$Request$createNewDocsContainer,
+											model,
+											parent,
+											_elm_lang$core$Maybe$Just(term),
+											slotId + 1)),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: model.settings.showRelevance ? _elm_lang$html$Html$text(
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										term.name,
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											' (',
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_elm_lang$core$Basics$toString(
+													A2(_elm_lang$core$Maybe$withDefault, 0, term.relevance)),
+												')')))) : _elm_lang$html$Html$text(term.name),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$onClick(
+										A3(
+											_user$project$Msg$ExecCmd,
+											slotId + 1,
+											'300px',
+											A2(_user$project$Request$loadAutocompleteTerms, term.name, slotId + 1))),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_user$project$IconSet$iconTopic,
+										model.mdl,
+										A2(
+											_user$project$IconSet$iconHighlighted,
+											model.settings,
+											{ctor: '_Tuple2', _0: slotId, _1: id})),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_debois$elm_mdl$Material_Options$span,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											A4(
+												_user$project$Request$createNewDocsContainer,
+												model,
+												parent,
+												_elm_lang$core$Maybe$Just(term),
+												slotId + 1)),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_user$project$IconSet$iconDoc,
+											model.mdl,
+											A2(
+												_user$project$IconSet$iconHighlighted,
+												model.settings,
+												{ctor: '_Tuple2', _0: slotId, _1: id})),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$Termsview$view = F6(
+	function (model, flex, slotId, slotName, parent, withHead) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('slot'),
+				_1: {
+					ctor: '::',
+					_0: flex,
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Elevation$e0,
+						_1: {
+							ctor: '::',
+							_0: _user$project$IconSet$primaryColor,
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: withHead ? A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$center,
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_user$project$IconSet$iconTerm,
+							model.mdl,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(slotName),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_debois$elm_mdl$Material_Button$render,
+									_user$project$Msg$Mdl,
+									{
+										ctor: '::',
+										_0: slotId,
+										_1: {ctor: '[]'}
+									},
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Button$fab,
+											_1: {
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Button$minifab,
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Button$raised,
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Button$ripple,
+														_1: {
+															ctor: '::',
+															_0: _debois$elm_mdl$Material_Options$onClick(
+																_user$project$Msg$DeleteSlot(slotId)),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Icon$i('close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}) : A2(
+					_debois$elm_mdl$Material_Options$div,
+					{ctor: '[]'},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_List$ul,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('slot__content'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'max-width', '400px'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$id(
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											'slot',
+											_elm_lang$core$Basics$toString(slotId))),
+									_1: {ctor: '[]'}
+								}
+							}
+						},
+						A7(
+							_user$project$IconSet$moveActions,
+							_user$project$Msg$ManageTermsCache,
+							model.termsCache,
+							A2(
+								_elm_lang$core$Maybe$withDefault,
+								0,
+								A2(_elm_lang$core$Dict$get, slotName, model.termsDict)),
+							slotId,
+							F2(
+								function (x, y) {
+									return A2(
+										_debois$elm_mdl$Material_List$li,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: A2(_debois$elm_mdl$Material_List$content, x, y),
+											_1: {ctor: '[]'}
+										});
+								}),
+							{
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$cs('mdl-button'),
+								_1: {
+									ctor: '::',
+									_0: _debois$elm_mdl$Material_Options$cs('mdl-button--raised'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'visible'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Options$cs('item'),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							},
+							A2(
+								_elm_lang$core$List$indexedMap,
+								A3(_user$project$Termsview$terms2ListItem, model, parent, slotId),
+								model.terms))),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$TermsDocumentsview$view = F4(
+	function (model, flex, slotId, name) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('slot'),
+				_1: {
+					ctor: '::',
+					_0: flex,
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Elevation$e0,
+						_1: {
+							ctor: '::',
+							_0: _user$project$IconSet$primaryColor,
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-flex'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '45px'),
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$center,
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_user$project$IconSet$iconTopicDetail,
+							model.mdl,
+							{
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '5px'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_debois$elm_mdl$Material_Options$span,
+								{
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'width', 'calc(100% - 64px)'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'text-align', 'left'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(name),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_debois$elm_mdl$Material_Button$render,
+									_user$project$Msg$Mdl,
+									{
+										ctor: '::',
+										_0: slotId,
+										_1: {ctor: '[]'}
+									},
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$cs('slot__close_button'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Button$fab,
+											_1: {
+												ctor: '::',
+												_0: _debois$elm_mdl$Material_Button$minifab,
+												_1: {
+													ctor: '::',
+													_0: _debois$elm_mdl$Material_Button$raised,
+													_1: {
+														ctor: '::',
+														_0: _debois$elm_mdl$Material_Button$ripple,
+														_1: {
+															ctor: '::',
+															_0: _debois$elm_mdl$Material_Options$onClick(
+																_user$project$Msg$DeleteSlot(slotId)),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Icon$i('close'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$div,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A6(
+								_user$project$Termsview$view,
+								model,
+								A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 50%'),
+								slotId,
+								'',
+								_user$project$Topic$defaultTopic,
+								false),
+							_1: {
+								ctor: '::',
+								_0: A5(
+									_user$project$Documentsview$view,
+									model,
+									A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 50%'),
+									slotId,
+									'',
+									false),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
+
+var _user$project$Searchview$li = F3(
+	function (icon, label, msg) {
+		return A2(
+			_debois$elm_mdl$Material_List$li,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Elevation$e4,
+				_1: {
+					ctor: '::',
+					_0: A2(_debois$elm_mdl$Material_Options$css, 'margin', '20px 0 20px 0'),
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_List$content,
+					{
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Options$onClick(msg),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_List$icon,
+							icon,
+							{ctor: '[]'}),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(label),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _user$project$Searchview$searchresult2ListItems = function (result) {
+	var _p0 = result;
+	switch (_p0.ctor) {
+		case 'TermResult':
+			var lia = function (a) {
+				return A3(
+					_user$project$Searchview$li,
+					'list',
+					a.name,
+					_user$project$Msg$Found(
+						A2(
+							_user$project$Model$TermsView,
+							'Terms',
+							{
+								ctor: '::',
+								_0: a,
+								_1: {ctor: '[]'}
+							})));
+			};
+			return A2(_elm_lang$core$List$map, lia, _p0._0);
+		case 'TopicResult':
+			var lia = function (a) {
+				return A3(
+					_user$project$Searchview$li,
+					'bubble_chart',
+					_elm_lang$core$Basics$toString(a.id),
+					_user$project$Msg$Found(
+						A2(
+							_user$project$Model$TopicsView,
+							'Topics',
+							{
+								ctor: '::',
+								_0: a,
+								_1: {ctor: '[]'}
+							})));
+			};
+			return A2(_elm_lang$core$List$map, lia, _p0._0);
+		default:
+			var _p1 = _p0._0;
+			return {
+				ctor: '::',
+				_0: A3(
+					_user$project$Searchview$li,
+					'art_track',
+					_p1.title,
+					_user$project$Msg$Found(
+						A2(
+							_user$project$Model$DocumentsView,
+							'Documents',
+							{
+								ctor: '::',
+								_0: _p1,
+								_1: {ctor: '[]'}
+							}))),
+				_1: {ctor: '[]'}
+			};
+	}
+};
+var _user$project$Searchview$advancedSearch = function (search4) {
+	return {
+		ctor: '::',
+		_0: function () {
+			if (A2(_elm_lang$core$String$startsWith, 'topic:', search4)) {
+				var search4topic = A2(_elm_lang$core$String$dropLeft, 6, search4);
+				return A3(
+					_user$project$Searchview$li,
+					'bubble_chart',
+					A2(_elm_lang$core$Basics_ops['++'], 'Search for Topics with ', search4topic),
+					A3(
+						_user$project$Msg$ExecCmd,
+						1,
+						'300px',
+						_user$project$Request$loadSearchTopics(search4topic)));
+			} else {
+				return A2(
+					_debois$elm_mdl$Material_Options$span,
+					{ctor: '[]'},
+					{ctor: '[]'});
+			}
+		}(),
+		_1: {
+			ctor: '::',
+			_0: function () {
+				if (A2(_elm_lang$core$String$startsWith, 'term:', search4)) {
+					var search4term = A2(_elm_lang$core$String$dropLeft, 5, search4);
+					return A3(
+						_user$project$Searchview$li,
+						'list',
+						A2(_elm_lang$core$Basics_ops['++'], 'Search for Terms with ', search4term),
+						A3(
+							_user$project$Msg$ExecCmd,
+							1,
+							'300px',
+							_user$project$Request$loadSearchTerms(search4term)));
+				} else {
+					return A2(
+						_debois$elm_mdl$Material_Options$span,
+						{ctor: '[]'},
+						{ctor: '[]'});
+				}
+			}(),
+			_1: {
+				ctor: '::',
+				_0: function () {
+					if (A2(_elm_lang$core$String$startsWith, 'document:', search4)) {
+						var search4doc = A2(_elm_lang$core$String$dropLeft, 9, search4);
+						return A3(
+							_user$project$Searchview$li,
+							'art_track',
+							A2(_elm_lang$core$Basics_ops['++'], 'Search for Documents with ', search4doc),
+							A3(
+								_user$project$Msg$ExecCmd,
+								1,
+								'300px',
+								A3(_user$project$Request$loadSearchDocs, search4doc, false, 'RELEVANCE')));
+					} else {
+						return A2(
+							_debois$elm_mdl$Material_Options$span,
+							{ctor: '[]'},
+							{ctor: '[]'});
+					}
+				}(),
+				_1: {ctor: '[]'}
+			}
+		}
+	};
+};
+var _user$project$Searchview$view = F2(
+	function (model, flex) {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Options$cs('search_results'),
+				_1: {
+					ctor: '::',
+					_0: _user$project$IconSet$primaryColor,
+					_1: {ctor: '[]'}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_List$ul,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow', 'auto'),
+						_1: {ctor: '[]'}
+					},
+					_user$project$Searchview$searchresult2ListItems(model.settings.searchResult)),
+				_1: {ctor: '[]'}
+			});
+	});
+
+var _user$project$Mainview_v4$slot = F3(
+	function (model, slotId, view) {
+		var _p0 = view;
+		switch (_p0.ctor) {
+			case 'TopicsView':
+				return A4(
+					_user$project$Topicsview$view,
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{topics: _p0._1}),
+					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+					slotId,
+					_p0._0);
+			case 'TermsDocumentsView':
+				return A4(
+					_user$project$TermsDocumentsview$view,
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{terms: _p0._1, docs: _p0._2}),
+					A2(_debois$elm_mdl$Material_Options$css, 'width', '600px'),
+					slotId,
+					_p0._0);
+			case 'TermsView':
+				return A6(
+					_user$project$Termsview$view,
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{terms: _p0._1}),
+					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+					slotId,
+					_p0._0,
+					_user$project$Topic$defaultTopic,
+					true);
+			case 'DocumentsView':
+				return A5(
+					_user$project$Documentsview$view,
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{docs: _p0._1}),
+					A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+					slotId,
+					_p0._0,
+					true);
+			case 'ShowdocumentView':
+				return A4(
+					_user$project$Showdocumentview$view,
+					model,
+					_p0._0,
+					A2(_debois$elm_mdl$Material_Options$css, 'width', '1000px'),
+					slotId);
+			case 'TermsContainerSlot':
+				var _p2 = _p0._0;
+				var inContainer = A2(
+					_user$project$ContainerCache$getCurrPageDataFromContainer,
+					model.termsCache,
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						0,
+						A2(_elm_lang$core$Dict$get, _p2, model.termsDict)));
+				var _p1 = inContainer;
+				if (_p1.ctor === 'Just') {
+					return A6(
+						_user$project$Termsview$view,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{terms: _p1._0}),
+						A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+						slotId,
+						_p2,
+						_p0._1,
+						true);
+				} else {
+					return _user$project$IconSet$loadingView('300px');
+				}
+			case 'DocsContainerSlot':
+				var _p4 = _p0._0;
+				var inContainer = A2(
+					_user$project$ContainerCache$getCurrPageDataFromContainer,
+					model.docsCache,
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						0,
+						A2(_elm_lang$core$Dict$get, _p4, model.docsDict)));
+				var _p3 = inContainer;
+				if (_p3.ctor === 'Just') {
+					return A5(
+						_user$project$Documentsview$view,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{docs: _p3._0}),
+						A2(_debois$elm_mdl$Material_Options$css, 'width', '300px'),
+						slotId,
+						_p4,
+						true);
+				} else {
+					return _user$project$IconSet$loadingView('300px');
+				}
+			case 'CombinedView':
+				return A2(
+					_debois$elm_mdl$Material_Options$div,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: A3(_user$project$Mainview_v4$slot, model, slotId, _p0._1),
+						_1: {
+							ctor: '::',
+							_0: A3(_user$project$Mainview_v4$slot, model, slotId, _p0._2),
+							_1: {ctor: '[]'}
+						}
+					});
+			case 'Empty':
+				return _user$project$IconSet$loadingView(_p0._0);
+			default:
+				return A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'width', '100px'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Error'),
+						_1: {ctor: '[]'}
+					});
+		}
+	});
+var _user$project$Mainview_v4$viewBody = function (model) {
+	var _p5 = model.settings.frame;
+	if (_p5.ctor === 'Startpage') {
+		return _user$project$Startpage$view(model.settings);
+	} else {
+		return A2(
+			_debois$elm_mdl$Material_Options$div,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Elevation$e4,
+				_1: {
+					ctor: '::',
+					_0: _debois$elm_mdl$Material_Options$cs('flex__row'),
+					_1: {
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_debois$elm_mdl$Material_Options$div,
+					{
+						ctor: '::',
+						_0: A2(_debois$elm_mdl$Material_Options$css, 'white-space', 'nowrap'),
+						_1: {
+							ctor: '::',
+							_0: A2(_debois$elm_mdl$Material_Options$css, 'display', 'inline-block'),
+							_1: {
+								ctor: '::',
+								_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-y', 'hidden'),
+								_1: {
+									ctor: '::',
+									_0: A2(_debois$elm_mdl$Material_Options$css, 'overflow-x', 'auto'),
+									_1: {
+										ctor: '::',
+										_0: A2(_debois$elm_mdl$Material_Options$css, 'height', '100%'),
+										_1: {
+											ctor: '::',
+											_0: _debois$elm_mdl$Material_Options$id('board'),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					},
+					A2(
+						_elm_lang$core$List$indexedMap,
+						_user$project$Mainview_v4$slot(model),
+						model.slots)),
+				_1: {ctor: '[]'}
+			});
+	}
+};
+var _user$project$Mainview_v4$viewSwitch = function (model) {
+	var oldSettings = model.settings;
+	return A2(
+		_debois$elm_mdl$Material_Options$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h3,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text('Einstellungen'),
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Mainview_v4$onEnterPressed = function (msg) {
+	var isEnter = function (code) {
+		return _elm_lang$core$Native_Utils.eq(code, 13) ? _elm_lang$core$Json_Decode$succeed(msg) : _elm_lang$core$Json_Decode$fail('not ENTER');
+	};
+	return A2(
+		_debois$elm_mdl$Material_Options$on,
+		'keydown',
+		A2(_elm_lang$core$Json_Decode$andThen, isEnter, _elm_lang$html$Html_Events$keyCode));
+};
+var _user$project$Mainview_v4$viewSearch = function (model) {
+	return A2(
+		_debois$elm_mdl$Material_Options$span,
+		{
+			ctor: '::',
+			_0: _debois$elm_mdl$Material_Options$cs('search_box'),
+			_1: {
+				ctor: '::',
+				_0: _user$project$IconSet$primaryColor,
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A5(
+				_debois$elm_mdl$Material_Textfield$render,
+				_user$project$Msg$Mdl,
+				{
+					ctor: '::',
+					_0: 7,
+					_1: {ctor: '[]'}
+				},
+				model.mdl,
+				{
+					ctor: '::',
+					_0: _debois$elm_mdl$Material_Textfield$label('Search'),
+					_1: {
+						ctor: '::',
+						_0: _debois$elm_mdl$Material_Textfield$floatingLabel,
+						_1: {
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Textfield$text_,
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$onInput(_user$project$Msg$Search),
+								_1: {
+									ctor: '::',
+									_0: _user$project$Mainview_v4$onEnterPressed(
+										_user$project$Msg$AdvancedSearch(model.settings.search4)),
+									_1: {
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$dispatch(_user$project$Msg$Batch),
+										_1: {ctor: '[]'}
+									}
+								}
+							}
+						}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Mainview_v4$view = function (model) {
+	var settings = model.settings;
+	return A3(
+		_debois$elm_mdl$Material_Scheme$topWithScheme,
+		_debois$elm_mdl$Material_Color$Green,
+		_debois$elm_mdl$Material_Color$Orange,
+		A4(
+			_debois$elm_mdl$Material_Layout$render,
+			_user$project$Msg$Mdl,
+			model.mdl,
+			{
+				ctor: '::',
+				_0: _debois$elm_mdl$Material_Layout$fixedHeader,
+				_1: {ctor: '[]'}
+			},
+			{
+				header: _elm_lang$core$Native_Utils.eq(settings.error, '') ? {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$span,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _user$project$Mainview_v4$viewSearch(model),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_user$project$IconSet$iconHome,
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											_user$project$Msg$Open(_user$project$Model$Startpage)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				} : {
+					ctor: '::',
+					_0: A2(
+						_debois$elm_mdl$Material_Options$span,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _user$project$Mainview_v4$viewSearch(model),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_user$project$IconSet$iconHome,
+									model.mdl,
+									{
+										ctor: '::',
+										_0: _debois$elm_mdl$Material_Options$onClick(
+											_user$project$Msg$Open(_user$project$Model$Startpage)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_debois$elm_mdl$Material_Options$span,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(settings.error),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				},
+				drawer: {
+					ctor: '::',
+					_0: _user$project$Mainview_v4$viewSwitch(model),
+					_1: {ctor: '[]'}
+				},
+				tabs: {
+					ctor: '_Tuple2',
+					_0: {ctor: '[]'},
+					_1: {ctor: '[]'}
+				},
+				main: {
+					ctor: '::',
+					_0: settings.search ? A2(
+						_debois$elm_mdl$Material_Options$span,
+						{
+							ctor: '::',
+							_0: _debois$elm_mdl$Material_Options$cs('search_overlay'),
+							_1: {
+								ctor: '::',
+								_0: _debois$elm_mdl$Material_Options$onClick(_user$project$Msg$ResetSettings),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_user$project$Searchview$view,
+								model,
+								A2(_debois$elm_mdl$Material_Options$css, 'flex', '1 1 100%')),
+							_1: {ctor: '[]'}
+						}) : A2(
+						_debois$elm_mdl$Material_Options$span,
+						{ctor: '[]'},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: _user$project$Mainview_v4$viewBody(model),
+						_1: {ctor: '[]'}
+					}
+				}
+			}));
+};
 
 var _user$project$TE_elm_v2$subscriptions = function (model) {
 	return A2(_debois$elm_mdl$Material_Layout$subs, _user$project$Msg$Mdl, model.mdl);
@@ -25994,7 +26224,7 @@ if (typeof _user$project$Startpage$main !== 'undefined') {
 }
 Elm['TE_elm_v2'] = Elm['TE_elm_v2'] || {};
 if (typeof _user$project$TE_elm_v2$main !== 'undefined') {
-    _user$project$TE_elm_v2$main(Elm['TE_elm_v2'], 'TE_elm_v2', {"types":{"unions":{"ContainerCache.Msg":{"args":["a"],"tags":{"LoadCheckPage":["ContainerCache.Meta a","Int","Result.Result Http.Error a"],"UpdatePage":["ContainerCache.PageMsg","Maybe.Maybe (ContainerCache.Page a)"],"LoadNewContainer":["String","Int","Int","Int","Int","Json.Decode.Decoder a","ContainerCache.Meta a -> Int -> ContainerCache.Page a"]}},"Model.View":{"args":[],"tags":{"Empty":["String"],"TermsContainerSlot":["String"],"DocumentsView":["String","List Document.Doc"],"TermsDocumentsView":["String","List Term.Term","List Document.Doc"],"ErrorSlot":[],"TopicsView":["String","List Topic.Topic"],"TermsView":["String","List Term.Term"],"ShowdocumentView":["Document.Document"]}},"Dict.LeafColor":{"args":[],"tags":{"LBBlack":[],"LBlack":[]}},"Platform.Cmd.Cmd":{"args":["msg"],"tags":{"Cmd":[]}},"Material.Component.Msg":{"args":["button","textfield","menu","layout","toggles","tooltip","tabs","dispatch"],"tags":{"TooltipMsg":["Material.Component.Index","tooltip"],"TogglesMsg":["Material.Component.Index","toggles"],"LayoutMsg":["layout"],"ButtonMsg":["Material.Component.Index","button"],"MenuMsg":["Material.Component.Index","menu"],"TabsMsg":["Material.Component.Index","tabs"],"Dispatch":["dispatch"],"TextfieldMsg":["Material.Component.Index","textfield"]}},"Material.Ripple.Msg":{"args":[],"tags":{"Down":["Material.Ripple.DOMState"],"Up":[],"Tick":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":["Dict.LeafColor"]}},"Model.SearchResult":{"args":[],"tags":{"TopicResult":["List Topic.Topic"],"DocumentResult":["Document.Doc"],"TermResult":["List Term.Term"]}},"ContainerCache.Page":{"args":["a"],"tags":{"Loaded":["a"],"HandleError":["String"],"ToLoad":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)"]}},"Msg.Msg":{"args":[],"tags":{"Batch":["List Msg.Msg"],"SlotToLastFromOther":["Int"],"ReturnTerms":["Topic.Topic","String","Int","Result.Result Http.Error (List Term.Term)"],"NewDocs":["String","Int","Result.Result Http.Error (List Document.Doc)"],"NewFrames":["String","Int","Result.Result Http.Error (List Term.Term)"],"None":[],"Toggle":["Model.Settings"],"DeleteSlot":["Int"],"UpdateSlot":["Model.View","Int"],"NewTermTopics":["String","Int","Result.Result Http.Error (List Term.Term)"],"ManageTermsCache":["ContainerCache.ContainerModelMsg (List Term.Term)"],"NewDocument":["Int","Result.Result Http.Error Document.Document"],"Found":["Model.View"],"NewTopics":["String","Int","Result.Result Http.Error (List Topic.Topic)"],"NewTermContainerSlot":["String","Int","Int","Msg.Msg"],"NewSearchDocs":["String","Result.Result Http.Error (List Document.Doc)"],"ExecCmd":["Int","String","Platform.Cmd.Cmd Msg.Msg"],"Open":["Model.Frame"],"NewDocTokens":["String","Int","Result.Result Http.Error Document.Document"],"NewSearchTerms":["String","Result.Result Http.Error (List Term.Term)"],"Mdl":["Material.Msg Msg.Msg"],"RemoveSlotFromOther":["Int"],"NewSearchTopics":["String","Result.Result Http.Error (List Term.Term)"],"ResetSettings":[],"AdvancedSearch":["String"],"ChoseSlotDialog":["Int"],"Search":["String"],"NewTerms":["String","Int","Result.Result Http.Error (List Term.Term)"],"ReturnDocs":["Topic.Topic","String","Int","Result.Result Http.Error (List Document.Doc)"]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"ContainerCache.ContainerModelMsg":{"args":["a"],"tags":{"LoadNewPage":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)","ContainerCache.Msg a"],"CreateNewContainer":["ContainerCache.Msg a"],"PageUpdate":["Int","ContainerCache.PageMsg"]}},"Model.Frame":{"args":[],"tags":{"Custom":[],"Startpage":[],"ViewTopics":[]}},"Material.Tooltip.Msg":{"args":[],"tags":{"Enter":["Material.Tooltip.DOMState"],"Leave":[]}},"Dict.NColor":{"args":[],"tags":{"BBlack":[],"Red":[],"NBlack":[],"Black":[]}},"ContainerCache.PageMsg":{"args":[],"tags":{"NextPage":[],"PrevPage":[]}},"Json.Decode.Decoder":{"args":["a"],"tags":{"Decoder":[]}},"Material.Textfield.Msg":{"args":[],"tags":{"Focus":[],"Input":["String"],"Blur":[]}},"Material.Layout.Msg":{"args":[],"tags":{"Resize":["Int"],"ToggleDrawer":[],"TransitionEnd":[],"ScrollPane":["Bool","Float"],"Ripple":["Int","Material.Ripple.Msg"],"ScrollTab":["Material.Layout.TabScrollState"],"TransitionHeader":["{ toCompact : Bool, fixedHeader : Bool }"],"NOP":[]}},"Material.Toggles.Msg":{"args":[],"tags":{"Ripple":["Material.Ripple.Msg"],"SetFocus":["Bool"]}},"VirtualDom.Property":{"args":["msg"],"tags":{"Property":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String"],"NetworkError":[],"Timeout":[],"BadStatus":["Http.Response String"],"BadPayload":["String","Http.Response String"]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Material.Tabs.Msg":{"args":[],"tags":{"Ripple":["Int","Material.Ripple.Msg"]}},"Material.Menu.Msg":{"args":["m"],"tags":{"Tick":[],"Close":[],"Open":["Material.Menu.Geometry.Geometry"],"Key":["List (Material.Options.Internal.Summary (Material.Menu.ItemConfig m) m)","Int"],"Ripple":["Int","Material.Ripple.Msg"],"Select":["Int","Maybe.Maybe m"],"Click":["Mouse.Position"]}},"Material.Dispatch.Config":{"args":["msg"],"tags":{"Config":["{ decoders : List ( String , ( Json.Decode.Decoder msg, Maybe.Maybe Html.Events.Options ) ) , lift : Maybe.Maybe (Json.Decode.Decoder (List msg) -> Json.Decode.Decoder msg) }"]}}},"aliases":{"Material.Button.Msg":{"args":[],"type":"Material.Ripple.Msg"},"Material.Layout.TabScrollState":{"args":[],"type":"{ canScrollLeft : Bool , canScrollRight : Bool , width : Maybe.Maybe Int }"},"Material.Tooltip.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle, offsetWidth : Float, offsetHeight : Float }"},"Html.Attribute":{"args":["msg"],"type":"VirtualDom.Property msg"},"Material.Menu.ItemConfig":{"args":["m"],"type":"{ enabled : Bool, divider : Bool, onSelect : Maybe.Maybe m }"},"Document.Token":{"args":[],"type":"{ topic_id : Int , posintion_in_document : Int , term : String , parent_topic_ids : List Int }"},"Material.Component.Index":{"args":[],"type":"List Int"},"Html.Events.Options":{"args":[],"type":"{ stopPropagation : Bool, preventDefault : Bool }"},"Http.Response":{"args":["body"],"type":"{ url : String , status : { code : Int, message : String } , headers : Dict.Dict String String , body : body }"},"ContainerCache.Meta":{"args":["a"],"type":"{ name : String , numOfItemsInContainer : Int , itemsPerPage : Int , numOfPages : Int , identifier : Int , windowSize : Int , currPage : Int , decoder : Json.Decode.Decoder a }"},"Material.Ripple.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle , clientX : Maybe.Maybe Float , clientY : Maybe.Maybe Float , touchX : Maybe.Maybe Float , touchY : Maybe.Maybe Float , type_ : String }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Topic.Topic":{"args":[],"type":"{ id : Int , hirarchical_topic : Topic.TopicHirarchie , color_topic : String , top_terms : List Term.Term }"},"Term.Term":{"args":[],"type":"{ id : Int , name : String , wordtype : Maybe.Maybe Int , count : Maybe.Maybe Int , relevance : Maybe.Maybe Int , top_topic : List Int }"},"Material.Options.Internal.Summary":{"args":["c","m"],"type":"{ classes : List String , css : List ( String, String ) , attrs : List (Html.Attribute m) , internal : List (Html.Attribute m) , dispatch : Material.Dispatch.Config m , config : c }"},"Document.Doc":{"args":[],"type":"{ id : Int , keyword_snippet : String , keyword_title : String , top_topic : List Int , linkurl : String , time_stamp : Int , title : String , snippet : String , topic_id : Maybe.Maybe Int , document_count : Maybe.Maybe String , relevance : Maybe.Maybe Float , isino : Maybe.Maybe Int }"},"Model.Settings":{"args":[],"type":"{ error : String , mobile : Bool , showRelevance : Bool , search : Bool , search4 : String , searchResult : Model.SearchResult , frame : Model.Frame }"},"Material.Msg":{"args":["m"],"type":"Material.Component.Msg Material.Button.Msg Material.Textfield.Msg (Material.Menu.Msg m) Material.Layout.Msg Material.Toggles.Msg Material.Tooltip.Msg Material.Tabs.Msg (List m)"},"Material.Menu.Geometry.Element":{"args":[],"type":"{ offsetTop : Float , offsetLeft : Float , offsetHeight : Float , bounds : DOM.Rectangle }"},"Material.Menu.Geometry.Geometry":{"args":[],"type":"{ button : Material.Menu.Geometry.Element , menu : Material.Menu.Geometry.Element , container : Material.Menu.Geometry.Element , offsetTops : List Float , offsetHeights : List Float }"},"Document.Document":{"args":[],"type":"{ id : Int , linkurl : String , time_stamp : Int , title : String , fulltext : String , search_test : String , frame_list : List String , word_list : List Document.Token }"},"Topic.TopicHirarchie":{"args":[],"type":"{ start : Int, end : Int, depth : Int, cluster : Maybe.Maybe String }"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"}},"message":"Msg.Msg"},"versions":{"elm":"0.18.0"}});
+    _user$project$TE_elm_v2$main(Elm['TE_elm_v2'], 'TE_elm_v2', {"types":{"unions":{"ContainerCache.Msg":{"args":["a"],"tags":{"LoadCheckPage":["ContainerCache.Meta a","Int","Result.Result Http.Error a"],"UpdatePage":["ContainerCache.PageMsg","Maybe.Maybe (ContainerCache.Page a)"],"LoadNewContainer":["String","Int","Int","Int","Int","Json.Decode.Decoder a","ContainerCache.Meta a -> Int -> ContainerCache.Page a"]}},"Model.View":{"args":[],"tags":{"Empty":["String"],"CombinedView":["String","Model.View","Model.View"],"DocsContainerSlot":["String"],"TermsContainerSlot":["String","Topic.Topic"],"DocumentsView":["String","List Document.Doc"],"TermsDocumentsView":["String","List Term.Term","List Document.Doc"],"ErrorSlot":[],"TopicsView":["String","List Topic.Topic"],"TermsView":["String","List Term.Term"],"ShowdocumentView":["Document.Document"]}},"Dict.LeafColor":{"args":[],"tags":{"LBBlack":[],"LBlack":[]}},"Platform.Cmd.Cmd":{"args":["msg"],"tags":{"Cmd":[]}},"Material.Component.Msg":{"args":["button","textfield","menu","layout","toggles","tooltip","tabs","dispatch"],"tags":{"TooltipMsg":["Material.Component.Index","tooltip"],"TogglesMsg":["Material.Component.Index","toggles"],"LayoutMsg":["layout"],"ButtonMsg":["Material.Component.Index","button"],"MenuMsg":["Material.Component.Index","menu"],"TabsMsg":["Material.Component.Index","tabs"],"Dispatch":["dispatch"],"TextfieldMsg":["Material.Component.Index","textfield"]}},"Material.Ripple.Msg":{"args":[],"tags":{"Down":["Material.Ripple.DOMState"],"Up":[],"Tick":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":["Dict.LeafColor"]}},"Model.SearchResult":{"args":[],"tags":{"TopicResult":["List Topic.Topic"],"DocumentResult":["Document.Doc"],"TermResult":["List Term.Term"]}},"ContainerCache.Page":{"args":["a"],"tags":{"Loaded":["a"],"HandleError":["String"],"ToLoad":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)"]}},"Msg.Msg":{"args":[],"tags":{"Batch":["List Msg.Msg"],"SlotToLastFromOther":["Int"],"ReturnTerms":["Topic.Topic","String","Int","Result.Result Http.Error (List Term.Term)"],"NewDocs":["String","Int","Result.Result Http.Error (List Document.Doc)"],"NewFrames":["String","Int","Result.Result Http.Error (List Term.Term)"],"None":[],"Toggle":["Model.Settings"],"NewTermsContainerSlot":["String","Topic.Topic","Int","Int","Msg.Msg"],"DeleteSlot":["Int"],"UpdateSlot":["Model.View","Int"],"NewTermTopics":["String","Int","Result.Result Http.Error (List Term.Term)"],"ManageTermsCache":["ContainerCache.ContainerModelMsg (List Term.Term)"],"NewDocument":["Int","Result.Result Http.Error Document.Document"],"Found":["Model.View"],"NewTopics":["String","Int","Result.Result Http.Error (List Topic.Topic)"],"NewSearchDocs":["String","Result.Result Http.Error (List Document.Doc)"],"ExecCmd":["Int","String","Platform.Cmd.Cmd Msg.Msg"],"Open":["Model.Frame"],"NewDocTokens":["String","Int","Result.Result Http.Error Document.Document"],"NewDocsContainerSlot":["String","Int","Int","Msg.Msg"],"NewSearchTerms":["String","Result.Result Http.Error (List Term.Term)"],"Mdl":["Material.Msg Msg.Msg"],"RemoveSlotFromOther":["Int"],"NewSearchTopics":["String","Result.Result Http.Error (List Term.Term)"],"ResetSettings":[],"AdvancedSearch":["String"],"ChoseSlotDialog":["Int"],"ManageDocsCache":["ContainerCache.ContainerModelMsg (List Document.Doc)"],"Search":["String"],"NewTerms":["String","Int","Result.Result Http.Error (List Term.Term)"],"ReturnDocs":["Topic.Topic","String","Int","Result.Result Http.Error (List Document.Doc)"]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"ContainerCache.ContainerModelMsg":{"args":["a"],"tags":{"LoadNewPage":["Int","Platform.Cmd.Cmd (ContainerCache.Msg a)","ContainerCache.Msg a"],"CreateNewContainer":["ContainerCache.Msg a"],"PageUpdate":["Int","ContainerCache.PageMsg"]}},"Model.Frame":{"args":[],"tags":{"Custom":[],"Startpage":[],"ViewTopics":[]}},"Material.Tooltip.Msg":{"args":[],"tags":{"Enter":["Material.Tooltip.DOMState"],"Leave":[]}},"Dict.NColor":{"args":[],"tags":{"BBlack":[],"Red":[],"NBlack":[],"Black":[]}},"ContainerCache.PageMsg":{"args":[],"tags":{"NextPage":[],"PrevPage":[]}},"Json.Decode.Decoder":{"args":["a"],"tags":{"Decoder":[]}},"Material.Textfield.Msg":{"args":[],"tags":{"Focus":[],"Input":["String"],"Blur":[]}},"Material.Layout.Msg":{"args":[],"tags":{"Resize":["Int"],"ToggleDrawer":[],"TransitionEnd":[],"ScrollPane":["Bool","Float"],"Ripple":["Int","Material.Ripple.Msg"],"ScrollTab":["Material.Layout.TabScrollState"],"TransitionHeader":["{ toCompact : Bool, fixedHeader : Bool }"],"NOP":[]}},"Material.Toggles.Msg":{"args":[],"tags":{"Ripple":["Material.Ripple.Msg"],"SetFocus":["Bool"]}},"VirtualDom.Property":{"args":["msg"],"tags":{"Property":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String"],"NetworkError":[],"Timeout":[],"BadStatus":["Http.Response String"],"BadPayload":["String","Http.Response String"]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"Material.Tabs.Msg":{"args":[],"tags":{"Ripple":["Int","Material.Ripple.Msg"]}},"Material.Menu.Msg":{"args":["m"],"tags":{"Tick":[],"Close":[],"Open":["Material.Menu.Geometry.Geometry"],"Key":["List (Material.Options.Internal.Summary (Material.Menu.ItemConfig m) m)","Int"],"Ripple":["Int","Material.Ripple.Msg"],"Select":["Int","Maybe.Maybe m"],"Click":["Mouse.Position"]}},"Material.Dispatch.Config":{"args":["msg"],"tags":{"Config":["{ decoders : List ( String , ( Json.Decode.Decoder msg, Maybe.Maybe Html.Events.Options ) ) , lift : Maybe.Maybe (Json.Decode.Decoder (List msg) -> Json.Decode.Decoder msg) }"]}}},"aliases":{"Material.Button.Msg":{"args":[],"type":"Material.Ripple.Msg"},"Material.Layout.TabScrollState":{"args":[],"type":"{ canScrollLeft : Bool , canScrollRight : Bool , width : Maybe.Maybe Int }"},"Material.Tooltip.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle, offsetWidth : Float, offsetHeight : Float }"},"Html.Attribute":{"args":["msg"],"type":"VirtualDom.Property msg"},"Material.Menu.ItemConfig":{"args":["m"],"type":"{ enabled : Bool, divider : Bool, onSelect : Maybe.Maybe m }"},"Document.Token":{"args":[],"type":"{ topic_id : Int , posintion_in_document : Int , term : String , parent_topic_ids : List Int }"},"Material.Component.Index":{"args":[],"type":"List Int"},"Html.Events.Options":{"args":[],"type":"{ stopPropagation : Bool, preventDefault : Bool }"},"Http.Response":{"args":["body"],"type":"{ url : String , status : { code : Int, message : String } , headers : Dict.Dict String String , body : body }"},"ContainerCache.Meta":{"args":["a"],"type":"{ name : String , numOfItemsInContainer : Int , itemsPerPage : Int , numOfPages : Int , identifier : Int , windowSize : Int , currPage : Int , decoder : Json.Decode.Decoder a }"},"Material.Ripple.DOMState":{"args":[],"type":"{ rect : DOM.Rectangle , clientX : Maybe.Maybe Float , clientY : Maybe.Maybe Float , touchX : Maybe.Maybe Float , touchY : Maybe.Maybe Float , type_ : String }"},"Mouse.Position":{"args":[],"type":"{ x : Int, y : Int }"},"Topic.Topic":{"args":[],"type":"{ id : Int , hirarchical_topic : Topic.TopicHirarchie , color_topic : String , top_terms : List Term.Term }"},"Term.Term":{"args":[],"type":"{ id : Int , name : String , wordtype : Maybe.Maybe Int , count : Maybe.Maybe Int , relevance : Maybe.Maybe Int , top_topic : List Int }"},"Material.Options.Internal.Summary":{"args":["c","m"],"type":"{ classes : List String , css : List ( String, String ) , attrs : List (Html.Attribute m) , internal : List (Html.Attribute m) , dispatch : Material.Dispatch.Config m , config : c }"},"Document.Doc":{"args":[],"type":"{ id : Int , keyword_snippet : String , keyword_title : String , top_topic : List Int , linkurl : String , time_stamp : Int , title : String , snippet : String , topic_id : Maybe.Maybe Int , document_count : Maybe.Maybe String , relevance : Maybe.Maybe Float , isino : Maybe.Maybe Int }"},"Model.Settings":{"args":[],"type":"{ error : String , mobile : Bool , showRelevance : Bool , search : Bool , search4 : String , searchResult : Model.SearchResult , frame : Model.Frame }"},"Material.Msg":{"args":["m"],"type":"Material.Component.Msg Material.Button.Msg Material.Textfield.Msg (Material.Menu.Msg m) Material.Layout.Msg Material.Toggles.Msg Material.Tooltip.Msg Material.Tabs.Msg (List m)"},"Material.Menu.Geometry.Element":{"args":[],"type":"{ offsetTop : Float , offsetLeft : Float , offsetHeight : Float , bounds : DOM.Rectangle }"},"Material.Menu.Geometry.Geometry":{"args":[],"type":"{ button : Material.Menu.Geometry.Element , menu : Material.Menu.Geometry.Element , container : Material.Menu.Geometry.Element , offsetTops : List Float , offsetHeights : List Float }"},"Document.Document":{"args":[],"type":"{ id : Int , linkurl : String , time_stamp : Int , title : String , fulltext : String , search_test : String , frame_list : List String , word_list : List Document.Token }"},"Topic.TopicHirarchie":{"args":[],"type":"{ start : Int, end : Int, depth : Int, cluster : Maybe.Maybe String }"},"DOM.Rectangle":{"args":[],"type":"{ top : Float, left : Float, width : Float, height : Float }"}},"message":"Msg.Msg"},"versions":{"elm":"0.18.0"}});
 }
 Elm['Term'] = Elm['Term'] || {};
 if (typeof _user$project$Term$main !== 'undefined') {
