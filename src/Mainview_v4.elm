@@ -2,6 +2,7 @@ module Mainview_v4 exposing (view)
 
 import Model exposing (..)
 import Term
+import Topic
 import Msg exposing (..)
 import Startpage
 import Showdocumentview
@@ -25,9 +26,7 @@ import Material.Layout as Layout
 import Material.Textfield as Textfield
 import Material.Toggles as Toggles
 import Material.Button as Button
-import Material.Card as Card
 import Material.Elevation as Elevation
-import Material.Spinner as Spinner
 import Json.Decode as Json
 
 view : Model -> Html Msg
@@ -161,60 +160,36 @@ slot model slotId view =
         TermsDocumentsView name terms docs ->
             TermsDocumentsview.view { model | terms = terms, docs = docs} (css "width" "600px") slotId name
         TermsView name terms ->
-            Termsview.view { model | terms = terms} (css "width" "300px") slotId name True
+            Termsview.view { model | terms = terms} (css "width" "300px") slotId name Topic.defaultTopic True
         DocumentsView name docs ->
             Documentsview.view { model | docs = docs} (css "width" "300px") slotId name True
         ShowdocumentView document ->
             Showdocumentview.view model document (css "width" "1000px") slotId
-        TermsContainerSlot name ->
+        TermsContainerSlot name parent ->
             let inContainer =
                     (ContainerCache.getCurrPageDataFromContainer model.termsCache (Maybe.withDefault 0 (Dict.get name model.termsDict)))
             in
             case inContainer of
                 Just terms ->
-                    Termsview.view { model | terms = terms} (css "width" "300px") slotId name True
+                    Termsview.view { model | terms = terms} (css "width" "300px") slotId name parent True
                 _ ->
-                    div [ cs "slot"
-                        , css "width" "300px"
-                        , Elevation.e0
-                        , primaryColor
-                        , css "display" "inline-flex"
-                        , css "height" "calc(100% - 5px)"
-                        ]
-                        [ span
-                            [ css "margin" "12px"
-                            ]
-                            [ text "loading..."]
-                        , span [ cs "loading"]
-                            [ Spinner.spinner
-                                [ Spinner.active True
-                                , Spinner.singleColor True
-                                ]
-                            ]
-                        ]
+                    loadingView "300px"
+        DocsContainerSlot name ->
+            let inContainer =
+                    (ContainerCache.getCurrPageDataFromContainer model.docsCache (Maybe.withDefault 0 (Dict.get name model.docsDict)))
+            in
+            case inContainer of
+                Just docs ->
+                    Documentsview.view { model | docs = docs} (css "width" "300px") slotId name True
+                _ ->
+                    loadingView "300px"
+        CombinedView name view1 view2 ->
+            div []
+                [ slot model slotId view1
+                , slot model slotId view2
+                ]
         Empty width ->
-            div [ cs "slot"
-                , css "width" width
-                , Elevation.e0
-                , primaryColor
-                , css "display" "inline-flex"
-                , css "height" "calc(100% - 5px)"
-                ]
-                [ span
-                    [ css "margin" "12px"
-                    ]
-                    [ text "loading..."]
-                , span [ cs "loading"]
-                    [ Spinner.spinner
-                        [ Spinner.active True
-                        , Spinner.singleColor True
-                        ]
-                    -- , Icon.view "autorenew"
-                    --     [ css "margin" "5px"
-                    --     , Icon.size48
-                    --     ]
-                    ]
-                ]
+            loadingView width
         _ ->
             div [ css "width" "100px"]
                 [ text "Error"]

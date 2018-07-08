@@ -72,8 +72,7 @@ topic2Chip model mdl settings slotId id topic =
                 , css "margin-right" "10px"
                 , onClick
                     (Batch
-                        [ (ExecCmd (slotId + 1) "600px"
-                            (Request.loadBestDocs (ReturnDocs topic) topic Nothing "RELEVANCE" (slotId + 1)))
+                        [ (Request.createNewDocsContainer model topic Nothing (slotId + 1))
                         , (Request.createNewTermsContainer model topic (slotId + 1))
                         ])
                 ]
@@ -97,7 +96,9 @@ topic2Chip model mdl settings slotId id topic =
                 [ iconTerm mdl (iconHighlighted settings (slotId, id))]
             , span
                 [ onClick
-                    (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs topic Nothing "RELEVANCE" (slotId + 1)))
+                    (Request.createNewDocsContainer model topic Nothing (slotId + 1))
+                -- , onClick
+                --     (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs topic Nothing "RELEVANCE" (slotId + 1)))
                 , center
                 ]
                 [ iconDoc mdl (iconHighlighted settings (slotId, id))]

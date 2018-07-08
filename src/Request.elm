@@ -1,6 +1,7 @@
 module Request exposing (..)
 
 import Msg exposing (..)
+import Model exposing (Model)
 --, Command(..))
 import Topic exposing (Topic)
 import Term exposing (Term)
@@ -47,7 +48,7 @@ loadBestDocs onResult topic maybeterm sorting slotId =
         termArgument =
             case maybeterm of
                 Just term ->
-                    "&term" ++ (toString term)
+                    "&term=" ++ term.name
                 _ ->
                     ""
         name =
@@ -58,6 +59,51 @@ loadBestDocs onResult topic maybeterm sorting slotId =
                     "Docs in Topic " ++ (toString topic.id)
     in
     loadData Document.bestDocsDecoder (onResult name slotId) command
+
+docsPageRequest : Topic -> String -> ContainerCache.Meta (List Doc) -> Int -> ContainerCache.Page (List Doc)
+docsPageRequest topic termArgument meta pagenumber =
+    let command =
+            String.concat
+                [ "bestDocs&TopicId="
+                , (toString topic.id)
+                , termArgument
+                , "&sorting="
+                , "RELEVANCE"
+                , "&offset="
+                , (toString (pagenumber * meta.itemsPerPage))
+                ]
+        url = baseURL ++ command
+    in
+    ContainerCache.ToLoad meta.identifier
+        (Http.send (ContainerCache.LoadCheckPage meta pagenumber)
+            (Http.get url
+                (meta.decoder)
+            )
+        )
+
+createNewDocsContainer : Model -> Topic -> Maybe Term -> Int -> Msg
+createNewDocsContainer model topic maybeterm slotId =
+    let containerId = (Array.length model.docsCache.arrayOfContainer)
+        (termArgument, termName) =
+            case maybeterm of
+                Just term ->
+                    ("&term=" ++ term.name, "with " ++ term.name)
+                _ ->
+                    ("", "")
+    in
+    NewDocsContainerSlot (("Docs in Topic " ++ (toString topic.id)) ++ termName) slotId containerId
+        (ManageDocsCache
+            (ContainerCache.CreateNewContainer
+                (ContainerCache.LoadNewContainer ("docslot" ++ (toString slotId))
+                    500
+                    20
+                    1
+                    containerId
+                    Document.bestDocsDecoder
+                    (docsPageRequest topic termArgument)
+                )
+            )
+        )
 
 loadTerms : (String -> Int -> (Result Http.Error (List Term)) -> Msg) -> Topic -> Int -> Int -> Cmd Msg
 loadTerms onResult topic offset slotId =
@@ -71,8 +117,8 @@ loadTerms onResult topic offset slotId =
     in
     loadData Term.termsDecoder (onResult ("Terms in Topic " ++ (toString topic.id)) slotId) command
 
-termsPageRequest : Topic -> Int -> ContainerCache.Meta (List Term) -> Int -> ContainerCache.Page (List Term)
-termsPageRequest topic slotId meta pagenumber =
+termsPageRequest : Topic -> ContainerCache.Meta (List Term) -> Int -> ContainerCache.Page (List Term)
+termsPageRequest topic meta pagenumber =
     let command =
             String.concat
                 [ "getTerms&TopicId="
@@ -92,7 +138,7 @@ termsPageRequest topic slotId meta pagenumber =
 createNewTermsContainer model topic slotId =
     let containerId = (Array.length model.termsCache.arrayOfContainer)
     in
-    NewTermContainerSlot ("Terms in Topic " ++ (toString topic.id)) slotId containerId
+    NewTermsContainerSlot ("Terms in Topic " ++ (toString topic.id)) topic slotId containerId
         (ManageTermsCache
             (ContainerCache.CreateNewContainer
                 (ContainerCache.LoadNewContainer ("termslot" ++ (toString slotId))
@@ -101,7 +147,7 @@ createNewTermsContainer model topic slotId =
                     1
                     containerId
                     Term.termsDecoder
-                    (termsPageRequest topic slotId)
+                    (termsPageRequest topic)
                 )
             )
         )

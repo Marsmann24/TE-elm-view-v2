@@ -1,13 +1,18 @@
 module IconSet exposing (..)
 
 import Msg exposing (..)
-import Model exposing (Settings)
+import Model exposing (Settings, Model)
+import Update exposing (scroll2Top, scroll2Bottom)
 
+import ContainerCache
 import Html exposing (Html, text)
 import Material
-import Material.Options exposing (Property, span, cs, css)
+import Material.Options exposing (Property, div, span, cs, css, onClick, center)
 import Material.Icon as Icon exposing (size48)
 import Material.Tooltip as Tooltip
+import Material.Spinner as Spinner
+import Material.Elevation as Elevation
+import Array
 
 iconHome : Material.Model -> List (Icon.Property Msg) -> Html Msg
 iconHome mdl args =
@@ -64,6 +69,79 @@ iconDocument mdl args =
             [ text "document"]
         ]
 
+moveActions : (ContainerCache.ContainerModelMsg (List a) -> Msg) -> ContainerCache.ContainerModel (List a) -> Int -> Int -> (List (Property c Msg) -> List (Html Msg) -> Html Msg) -> List (Property c Msg) -> List (Html Msg) -> List (Html Msg)
+moveActions cacheMsg cache containerId slotId actionHtml actionStyle innerHtml =
+    let thisCM = cache
+        thisCache = Maybe.withDefault ContainerCache.defaultContainer (Array.get containerId thisCM.arrayOfContainer)
+        thisMeta = thisCache.meta
+        thisCurrPage = thisMeta.currPage
+        nextMeta = { thisMeta | currPage = thisCurrPage + 1}
+        nextCache = { thisCache | meta = nextMeta}
+        nextCM = { thisCM | arrayOfContainer = Array.fromList [nextCache]}
+    in
+    (List.concat
+        [ if ((Maybe.withDefault ContainerCache.defaultContainer (Array.get containerId cache.arrayOfContainer)).meta.currPage == 0)
+            then []
+            else
+                [ actionHtml
+                    (List.append
+                        actionStyle
+                        [ center
+                        , css "cursor" "pointer"
+                        , onClick
+                            (Batch
+                                [ (cacheMsg (ContainerCache.PageUpdate containerId (ContainerCache.PrevPage)))
+                                , ExecCmd -1 "" (scroll2Bottom ("slot" ++ (toString slotId)))
+                                ]
+                            )
+                        ])
+                    [ Icon.i "expand_less"]
+                ]
+        , innerHtml
+        , (case (ContainerCache.getCurrPageDataFromContainer nextCM containerId) of
+            Just [] ->
+                []
+            _ ->
+                [ actionHtml
+                    (List.append
+                        actionStyle
+                        [ center
+                        , css "cursor" "pointer"
+                        , onClick
+                            (Batch
+                                [ (cacheMsg (ContainerCache.PageUpdate containerId (ContainerCache.NextPage)))
+                                , ExecCmd -1 "" (scroll2Top ("slot" ++ (toString slotId)))
+                                ]
+                            )
+                        ])
+                    [ Icon.i "expand_more"]
+                ])
+        ])
+
+loadingView : String -> Html Msg
+loadingView width =
+    div [ cs "slot"
+        , css "width" width
+        , Elevation.e0
+        , primaryColor
+        , css "display" "inline-flex"
+        , css "height" "calc(100% - 5px)"
+        ]
+        [ span
+            [ css "margin" "12px"
+            ]
+            [ text "loading..."]
+        , span [ cs "loading"]
+            [ Spinner.spinner
+                [ Spinner.active True
+                , Spinner.singleColor True
+                ]
+            -- , Icon.view "autorenew"
+            --     [ css "margin" "5px"
+            --     , Icon.size48
+            --     ]
+            ]
+        ]
 
 iconHighlighted : Settings -> (Int, Int) -> List (Icon.Property Msg)
 iconHighlighted settings id =

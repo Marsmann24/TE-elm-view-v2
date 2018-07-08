@@ -33,8 +33,10 @@ type Msg
     | NewSearchDocs String (Result Http.Error (List Doc))
     | ReturnTerms Topic String Int (Result Http.Error (List Term))
     | ReturnDocs Topic String Int (Result Http.Error (List Doc))
-    | NewTermContainerSlot String Int Int Msg
+    | NewTermsContainerSlot String Topic Int Int Msg
     | ManageTermsCache (ContainerCache.ContainerModelMsg (List Term))
+    | NewDocsContainerSlot String Int Int Msg
+    | ManageDocsCache (ContainerCache.ContainerModelMsg (List Doc))
     | ExecCmd Int String (Cmd Msg)
     | Batch (List Msg)
     | Mdl (Material.Msg Msg)

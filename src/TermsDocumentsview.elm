@@ -2,6 +2,7 @@ module TermsDocumentsview exposing (view)
 
 import Model exposing (..)
 import Msg exposing (Msg(..))
+import Topic
 import Termsview
 import Documentsview
 
@@ -42,7 +43,7 @@ view model flex slotId name =
                 [ Icon.i "close" ]
             ]
         , div [ cs "flex__row"]
-            [ Termsview.view model (css "flex" "1 1 50%") slotId "" False
+            [ Termsview.view model (css "flex" "1 1 50%") slotId "" Topic.defaultTopic False
             , Documentsview.view model (css "flex" "1 1 50%") slotId "" False
             ]
         ]

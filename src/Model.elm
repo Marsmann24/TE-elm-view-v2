@@ -30,6 +30,8 @@ type alias Model =
         }
     , termsCache : ContainerModel (List Term)
     , termsDict : Dict String Int
+    , docsCache : ContainerModel (List Doc)
+    , docsDict : Dict String Int
     , mdl : Material.Model
     }
 
@@ -60,6 +62,8 @@ type View
     | DocumentsView String (List Doc)
     | TermsDocumentsView String (List Term) (List Doc)
     | ShowdocumentView Document
-    | TermsContainerSlot String
+    | CombinedView String View View
+    | TermsContainerSlot String Topic
+    | DocsContainerSlot String
     | Empty String
     | ErrorSlot

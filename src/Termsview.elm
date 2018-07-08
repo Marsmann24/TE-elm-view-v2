@@ -3,7 +3,7 @@ module Termsview exposing (view)
 import Model exposing (..)
 import Msg exposing (..)
 import Term exposing (..)
-import Topic exposing (defaultTopic)
+import Topic exposing (defaultTopic, Topic)
 import Request
 import IconSet exposing (..)
 
@@ -19,17 +19,8 @@ import Material.Icon as Icon
 import Material.Button as Button
 import Material.List as Lists
 
-view : Model -> Property c Msg -> Int -> String -> Bool -> Html Msg
-view model flex slotId slotName withHead =
-    let containerId = (Maybe.withDefault 0 (Dict.get slotName model.termsDict))
-        thisCM = model.termsCache
-        thisCache = Maybe.withDefault ContainerCache.defaultContainer (Array.get containerId thisCM.arrayOfContainer)
-        thisMeta = thisCache.meta
-        thisCurrPage = thisMeta.currPage
-        nextMeta = { thisMeta | currPage = thisCurrPage + 1}
-        nextCache = { thisCache | meta = nextMeta}
-        nextCM = { thisCM | arrayOfContainer = Array.fromList [nextCache]}
-    in
+view : Model -> Property c Msg -> Int -> String -> Topic -> Bool -> Html Msg
+view model flex slotId slotName parent withHead =
     div
         [ cs "slot"
         , flex
@@ -63,47 +54,27 @@ view model flex slotId slotName withHead =
         , Lists.ul
             [ cs "slot__content"
             , css "max-width" "400px"
+            , Material.Options.id ("slot" ++ (toString slotId))
             ]
-            (List.concat
-                [ if ((Maybe.withDefault ContainerCache.defaultContainer (Array.get containerId model.termsCache.arrayOfContainer)).meta.currPage == 0)
-                    then []
-                    else
-                        [ Lists.li []
-                            [ Lists.content
-                                [ cs "mdl-button"
-                                , cs "mdl-button--raised"
-                                , css "overflow" "visible"
-                                , cs "item"
-                                , center
-                                , onClick (ManageTermsCache (ContainerCache.PageUpdate containerId (ContainerCache.PrevPage)))
-                                ]
-                                [ Icon.i "expand_less"]
-                            ]
-                        ]
-                , (List.indexedMap (terms2ListItem model.mdl model.settings slotId) model.terms)
-                , (case (ContainerCache.getCurrPageDataFromContainer nextCM containerId) of
-                    Just [] ->
-                        []
-                    Just a ->
-                        [ Lists.li []
-                            [ Lists.content
-                                [ cs "mdl-button"
-                                , cs "mdl-button--raised"
-                                , css "overflow" "visible"
-                                , cs "item"
-                                , center
-                                , onClick (ManageTermsCache (ContainerCache.PageUpdate containerId (ContainerCache.NextPage)))
-                                ]
-                                [ Icon.i "expand_more"]
-                            ]
-                        ]
-                    _ ->
-                        [])
-                ])
+            (moveActions
+                ManageTermsCache
+                model.termsCache
+                (Maybe.withDefault 0 (Dict.get slotName model.termsDict))
+                slotId
+                (\x y ->
+                    Lists.li []
+                        [ Lists.content x y])
+                [ cs "mdl-button"
+                , cs "mdl-button--raised"
+                , css "overflow" "visible"
+                , cs "item"
+                ]
+                (List.indexedMap (terms2ListItem model parent slotId) model.terms)
+            )
         ]
 
-terms2ListItem : Material.Model -> Settings -> Int -> Int -> Term -> Html Msg
-terms2ListItem mdl settings slotId id term =
+terms2ListItem : Model -> Topic -> Int -> Int -> Term -> Html Msg
+terms2ListItem model parent slotId id term =
     Lists.li
         [ css "overflow" "visible"
         ]
@@ -117,9 +88,10 @@ terms2ListItem mdl settings slotId id term =
             [ span
                 [ css "width" "calc(100% - 48px)"
                 , onClick
-                    (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
+                    (Request.createNewDocsContainer model parent (Just term) (slotId + 1))
+                    -- (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
                 ]
-                [ if (settings.showRelevance)
+                [ if (model.settings.showRelevance)
                   then text (term.name ++ " (" ++ (toString (Maybe.withDefault 0 term.relevance)) ++ ")")
                   else text term.name
                 ]
@@ -127,11 +99,12 @@ terms2ListItem mdl settings slotId id term =
                 [ onClick
                     (ExecCmd (slotId + 1) "300px" (Request.loadAutocompleteTerms term.name (slotId + 1)))
                 ]
-                [ iconTopic mdl (iconHighlighted settings (slotId, id))]
+                [ iconTopic model.mdl (iconHighlighted model.settings (slotId, id))]
             , span
                 [ onClick
-                    (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
+                    (Request.createNewDocsContainer model parent (Just term) (slotId + 1))
+                --     (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
                 ]
-                [ iconDoc mdl (iconHighlighted settings (slotId, id))]
+                [ iconDoc model.mdl (iconHighlighted model.settings (slotId, id))]
             ]
         ]

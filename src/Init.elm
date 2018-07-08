@@ -26,6 +26,8 @@ init =
         }
     , termsCache = (ContainerCache.newContainerModel Array.empty 10 ContainerCache.defaultContainer)
     , termsDict = Dict.empty
+    , docsCache = (ContainerCache.newContainerModel Array.empty 10 ContainerCache.defaultContainer)
+    , docsDict = Dict.empty
     , mdl = Material.model
     } , Cmd.batch [(loadTopics 0), (Layout.sub0 Mdl)])
 

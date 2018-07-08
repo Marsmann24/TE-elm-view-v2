@@ -1,4 +1,4 @@
-module Update exposing (update)
+module Update exposing (update, scroll2Top, scroll2Bottom, scroll2Right)
 
 import Model exposing (..)
 import Msg exposing (..)
@@ -385,23 +385,27 @@ update msg model =
                     ({ model | settings = { oldSettings | error = toString err}}, scroll2Right)
         ExecCmd slotId width cmd ->
             let oldSettings = model.settings
+                newSlot =
+                    if slotId >= 0
+                    then List.append (List.take slotId model.slots) [ Empty width]
+                    else model.slots
             in
             ({ model
-                | slots =  List.append (List.take slotId model.slots) [ Empty width]
+                | slots = newSlot
             }, cmd)
-        NewTermContainerSlot name slotId containerId msg->
+        NewTermsContainerSlot name parent slotId containerId msg->
             let oldSettings = model.settings
                 oldDict = model.termsDict
             in
             if Dict.member name oldDict
             then
                 ({ model
-                    | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name]
+                    | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name parent]
                 }, Cmd.none)
             else
                 (update msg
                     { model
-                        | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name]
+                        | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name parent]
                         , termsDict = Dict.insert name containerId oldDict
                     })
         ManageTermsCache cachemsg ->
@@ -413,6 +417,30 @@ update msg model =
                 | termsCache = newdata
                 , settings = { oldSettings | error = ""}
             }, Platform.Cmd.map ManageTermsCache cmd )
+        NewDocsContainerSlot name slotId containerId msg->
+            let oldSettings = model.settings
+                oldDict = model.docsDict
+            in
+            if Dict.member name oldDict
+            then
+                ({ model
+                    | slots =  List.append (List.take slotId model.slots) [ DocsContainerSlot name]
+                }, Cmd.none)
+            else
+                (update msg
+                    { model
+                        | slots =  List.append (List.take slotId model.slots) [ DocsContainerSlot name]
+                        , docsDict = Dict.insert name containerId oldDict
+                    })
+        ManageDocsCache cachemsg ->
+            let (newdata, cmd) =
+                    ContainerCache.update cachemsg model.docsCache
+                oldSettings = model.settings
+            in
+            ({ model
+                | docsCache = newdata
+                , settings = { oldSettings | error = ""}
+            }, Platform.Cmd.map ManageDocsCache cmd )
         Batch msg_ ->
             model ! [ Dispatch.forward msg_ ]
         Mdl msgmdl ->
@@ -423,3 +451,11 @@ update msg model =
 scroll2Right : Cmd Msg
 scroll2Right =
     Task.attempt (\a -> None) (Dom.Scroll.toRight "board")
+
+scroll2Top : String -> Cmd Msg
+scroll2Top id =
+    Task.attempt (\a -> None) (Dom.Scroll.toTop id)
+
+scroll2Bottom : String -> Cmd Msg
+scroll2Bottom id =
+    Task.attempt (\a -> None) (Dom.Scroll.toBottom id)
