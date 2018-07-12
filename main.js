@@ -22209,7 +22209,11 @@ var _user$project$Request$createNewDocsContainer = F5(
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_elm_lang$core$Basics_ops['++'], '&term=', _p4.name),
+<<<<<<< HEAD
 					_1: A2(_elm_lang$core$Basics_ops['++'], ' with ', _p4.name)
+=======
+					_1: A2(_elm_lang$core$Basics_ops['++'], 'with ', _p4.name)
+>>>>>>> e61f9c29f570fc984346d1bb03d470e1a0e5ee2f
 				};
 			} else {
 				return {ctor: '_Tuple2', _0: '', _1: ''};
