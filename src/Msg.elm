@@ -33,11 +33,15 @@ type Msg
     | NewSearchDocs String (Result Http.Error (List Doc))
     | ReturnTerms Topic String Int (Result Http.Error (List Term))
     | ReturnDocs Topic String Int (Result Http.Error (List Doc))
-    | NewTermsContainerSlot String Topic Int Int Msg
+    | NewTermsContainerSlot Bool String Topic Int Int Msg
     | ManageTermsCache (ContainerCache.ContainerModelMsg (List Term))
-    | NewDocsContainerSlot String Int Int Msg
+    | NewDocsContainerSlot Bool String Int Int Msg
     | ManageDocsCache (ContainerCache.ContainerModelMsg (List Doc))
     | ExecCmd Int String (Cmd Msg)
     | Batch (List Msg)
+    | BatchCmd (List (Cmd Msg))
+    | Combine Int String View
+    | CombineTopic Int String (Result Http.Error (List Term))
+    | CombineDoc Int String (Result Http.Error (List Doc))
     | Mdl (Material.Msg Msg)
     | None -- zum Testen, damit update immer einen "_ ->"-Zweig haben kann

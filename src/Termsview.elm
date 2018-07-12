@@ -54,6 +54,7 @@ view model flex slotId slotName parent withHead =
         , Lists.ul
             [ cs "slot__content"
             , css "max-width" "400px"
+            , css "padding" "8px 0 0 0"
             , Material.Options.id ("slot" ++ (toString slotId))
             ]
             (moveActions
@@ -88,7 +89,7 @@ terms2ListItem model parent slotId id term =
             [ span
                 [ css "width" "calc(100% - 48px)"
                 , onClick
-                    (Request.createNewDocsContainer model parent (Just term) (slotId + 1))
+                    (Request.createNewDocsContainer False model parent (Just term) (slotId + 1))
                     -- (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
                 ]
                 [ if (model.settings.showRelevance)
@@ -102,7 +103,7 @@ terms2ListItem model parent slotId id term =
                 [ iconTopic model.mdl (iconHighlighted model.settings (slotId, id))]
             , span
                 [ onClick
-                    (Request.createNewDocsContainer model parent (Just term) (slotId + 1))
+                    (Request.createNewDocsContainer False model parent (Just term) (slotId + 1))
                 --     (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs defaultTopic (Just term) "RELEVANCE" (slotId + 1)))
                 ]
                 [ iconDoc model.mdl (iconHighlighted model.settings (slotId, id))]

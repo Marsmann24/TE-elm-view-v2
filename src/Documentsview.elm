@@ -52,6 +52,7 @@ view model flex slotId slotName withHead =
         , div
             [ cs "slot__content"
             , css "max-width" "400px"
+            , css "padding" "8px 0 0 0"
             , Material.Options.id ("slot" ++ (toString slotId))
             ]
             (moveActions

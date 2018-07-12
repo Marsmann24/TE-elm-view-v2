@@ -50,6 +50,7 @@ view model flex slotId slotName =
         , div
             [ cs "slot__content"
             , css "max-width" "400px"
+            , css "padding" "8px 0 0 0"
             ]
             (List.indexedMap (topic2Chip model model.mdl model.settings slotId) model.topics)
         ]
@@ -72,8 +73,9 @@ topic2Chip model mdl settings slotId id topic =
                 , css "margin-right" "10px"
                 , onClick
                     (Batch
-                        [ (Request.createNewDocsContainer model topic Nothing (slotId + 1))
-                        , (Request.createNewTermsContainer model topic (slotId + 1))
+                        [ (Request.createNewDocsContainer True model topic Nothing (slotId + 1))
+                        , (Request.createNewTermsContainer True model topic (slotId + 1))
+                        , (ExecCmd (slotId + 1) "600px" Cmd.none) 
                         ])
                 ]
                 [ span [ css "margin-right" "10px"] [ text (("Topic " ++ (toString topic.id)) ++ ": ")]
@@ -90,13 +92,13 @@ topic2Chip model mdl settings slotId id topic =
                 ]
             , span
                 [ onClick
-                    (Request.createNewTermsContainer model topic (slotId + 1))
+                    (Request.createNewTermsContainer False model topic (slotId + 1))
                 , center
                 ]
                 [ iconTerm mdl (iconHighlighted settings (slotId, id))]
             , span
                 [ onClick
-                    (Request.createNewDocsContainer model topic Nothing (slotId + 1))
+                    (Request.createNewDocsContainer False model topic Nothing (slotId + 1))
                 -- , onClick
                 --     (ExecCmd (slotId + 1) "300px" (Request.loadBestDocs NewDocs topic Nothing "RELEVANCE" (slotId + 1)))
                 , center

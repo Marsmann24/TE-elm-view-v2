@@ -184,9 +184,21 @@ slot model slotId view =
                 _ ->
                     loadingView "300px"
         CombinedView name view1 view2 ->
-            div []
-                [ slot model slotId view1
-                , slot model slotId view2
+            div
+                [ cs "slot"
+                , Elevation.e0
+                , primaryColor
+                , css "display" "inline-flex"
+                ]
+                [ div
+                    [ css "white-space" "nowrap"
+                    , css "display" "inline-block"
+                    , css "overflow-y" "hidden"
+                    , css "height" "100%"
+                    ]
+                    [ slot model slotId view1
+                    , slot model slotId view2
+                    ]
                 ]
         Empty width ->
             loadingView width

@@ -48,7 +48,7 @@ view settings =
                   [ Card.text
                       [ css "height" "225px"
                       ]
-                      [ text "Comming Soon"]
+                      [ text "Coming Soon"]
                   , Card.title [ ]
                       [ Card.head [ ] [ text "Topic Statistics" ]
                       , Card.subhead [ ] [ text "Timelines and other Statistics about a Topic or all Topics." ]
@@ -68,7 +68,7 @@ view settings =
                   [ Card.text
                       [ css "height" "225px"
                       ]
-                      [ text "Comming Soon"]
+                      [ text "Coming Soon"]
                   , Card.title [ ]
                       [ Card.head [ ] [ text "Compare Topics" ]
                       , Card.subhead [ ] [ text "Compare two or more Topics and join Topics together." ]

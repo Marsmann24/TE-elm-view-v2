@@ -8,6 +8,7 @@ import Term exposing (Term)
 import Document exposing (Doc, Document)
 import Request
 
+import Debug
 import Dict
 import ContainerCache
 import Material
@@ -20,6 +21,7 @@ import Array
 import Set
 import Dom.Scroll
 import Task
+import Http
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -393,19 +395,83 @@ update msg model =
             ({ model
                 | slots = newSlot
             }, cmd)
-        NewTermsContainerSlot name parent slotId containerId msg->
+        CombineTopic id termName result ->
+            let fetchTerm : List Term -> Maybe Term
+                fetchTerm terms =
+                    List.head (List.filter (\x -> x.name == termName) terms)
+                maybeTerm2TopicList : Maybe Term -> List Int
+                maybeTerm2TopicList terms =
+                    case terms of
+                        Just term ->
+                            term.top_topic
+                        Nothing ->
+                            []
+                isMember : List Term -> Topic -> Bool
+                isMember terms topics=
+                    List.member
+                        topics.id
+                        (maybeTerm2TopicList
+                            (fetchTerm terms)
+                        )
+                newTopics : List Term -> List Topic
+                newTopics terms =
+                    List.filter
+                        (isMember terms)
+                        model.topics
+            in
+            case result of
+                Ok newTerms ->
+                    update (Combine id ("Search Result for " ++ termName) (TopicsView "" (newTopics newTerms))) model
+                Err err ->
+                    ((includeError model err), Cmd.none)
+        CombineDoc id name result ->
+            case result of
+                Ok newDocs ->
+                    update (Combine id ("Search Result for " ++ name) (DocumentsView "" newDocs)) model
+                Err err ->
+                    ((includeError model err), Cmd.none)
+        Combine slotId name view ->
+            let oldSettings = model.settings
+                newSlots =
+                    if slotId >= 0
+                    then List.append (List.take slotId model.slots) [ newView]
+                    else model.slots
+                newView =
+                    case oldView1 of
+                        (Empty "300px") ->
+                            CombinedView name view oldView2
+                        _ ->
+                            CombinedView name oldView1 view
+                (oldView1, oldView2) =
+                    case List.head (List.drop slotId model.slots) of
+                        Just (CombinedView _ oldView1 oldView2) ->
+                            (oldView1, oldView2)
+                        _ ->
+                            ((Empty "300px"), (Empty "300px"))
+
+            in
+            ({ model
+                | slots = newSlots
+            }, Cmd.none)
+        NewTermsContainerSlot combine name parent slotId containerId msg->
             let oldSettings = model.settings
                 oldDict = model.termsDict
+                newView = TermsContainerSlot name parent
+                newSlots =
+                    if combine
+                    then model_.slots
+                    else List.append (List.take slotId model.slots) [ newView]
+                (model_, msg_) = update (Combine slotId name newView) model
             in
             if Dict.member name oldDict
             then
                 ({ model
-                    | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name parent]
+                    | slots = newSlots
                 }, Cmd.none)
             else
                 (update msg
                     { model
-                        | slots =  List.append (List.take slotId model.slots) [ TermsContainerSlot name parent]
+                        | slots =  newSlots
                         , termsDict = Dict.insert name containerId oldDict
                     })
         ManageTermsCache cachemsg ->
@@ -417,19 +483,25 @@ update msg model =
                 | termsCache = newdata
                 , settings = { oldSettings | error = ""}
             }, Platform.Cmd.map ManageTermsCache cmd )
-        NewDocsContainerSlot name slotId containerId msg->
+        NewDocsContainerSlot combine name slotId containerId msg->
             let oldSettings = model.settings
                 oldDict = model.docsDict
+                newView = DocsContainerSlot name
+                newSlots =
+                    if combine
+                    then model_.slots
+                    else List.append (List.take slotId model.slots) [ newView]
+                (model_, msg_) = update (Combine slotId name newView) model
             in
             if Dict.member name oldDict
             then
                 ({ model
-                    | slots =  List.append (List.take slotId model.slots) [ DocsContainerSlot name]
+                    | slots = newSlots
                 }, Cmd.none)
             else
                 (update msg
                     { model
-                        | slots =  List.append (List.take slotId model.slots) [ DocsContainerSlot name]
+                        | slots = newSlots
                         , docsDict = Dict.insert name containerId oldDict
                     })
         ManageDocsCache cachemsg ->
@@ -443,10 +515,18 @@ update msg model =
             }, Platform.Cmd.map ManageDocsCache cmd )
         Batch msg_ ->
             model ! [ Dispatch.forward msg_ ]
+        BatchCmd cmd_ ->
+            model ! cmd_
         Mdl msgmdl ->
             (Material.update Mdl msgmdl model)
         _ ->
             ( model, Cmd.none)
+
+includeError : Model -> Http.Error -> Model
+includeError model err =
+    let oldSettings = model.settings
+    in
+    { model | settings = { oldSettings | error = toString err}}
 
 scroll2Right : Cmd Msg
 scroll2Right =

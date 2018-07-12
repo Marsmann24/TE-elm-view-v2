@@ -65,7 +65,12 @@ searchresult2ListItems result =
         TermResult list ->
             let lia : Term -> Html Msg
                 lia a =
-                    li "list" a.name (Found (TermsView "Terms" [a]))
+                    -- li "list" a.name (Found (TermsView "Terms" [a]))
+                    li "list" a.name
+                        (BatchCmd
+                            [ (Request.getCombineDocs 0 a.name False "RELEVANCE")
+                            , (Request.getCombineTopics 0 a.name)]
+                        )
             in
             List.map lia list
         TopicResult list ->

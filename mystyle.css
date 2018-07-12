@@ -145,7 +145,7 @@ main{
 .slot__content{
     overflow: auto;
     height: calc(100% - 62px);
-    margin: 0;
+    margin: 2px 0 20px 0;
     padding: 0;
 }
 
