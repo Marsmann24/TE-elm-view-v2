@@ -169,11 +169,7 @@ createNewDocsContainer combine model topic maybeterm slotId =
         (termArgument, termName) =
             case maybeterm of
                 Just term ->
-<<<<<<< HEAD
                     ("&term=" ++ term.name, " with " ++ term.name)
-=======
-                    ("&term=" ++ term.name, "with " ++ term.name)
->>>>>>> e61f9c29f570fc984346d1bb03d470e1a0e5ee2f
                 _ ->
                     ("", "")
     in
