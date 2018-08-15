@@ -21,11 +21,23 @@ import Array
 import Set
 import Dom.Scroll
 import Task
+import Window
 import Http
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        OpenCheckMobile frame mobileframe ->
+            let size2Msg task =
+                    case task of
+                        Ok deviceSize ->
+                            if (deviceSize.height > deviceSize.width)
+                            then Open mobileframe
+                            else Open frame
+                        Err error ->
+                            Open frame
+            in
+            ( model, (Task.attempt size2Msg Window.size))
         Open frame ->
             let cmd =
                     if (frame == ViewTopics)

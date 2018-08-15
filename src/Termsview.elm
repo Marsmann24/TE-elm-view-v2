@@ -23,7 +23,9 @@ view : Model -> Property c Msg -> Int -> String -> Topic -> Bool -> Html Msg
 view model flex slotId slotName parent withHead =
     div
         [ cs "slot"
-        , flex
+        , if model.settings.frame == Mobile
+        then css "width" "100%"
+        else flex
         , Elevation.e0
         , primaryColor
         , css "display" "inline-flex"
@@ -31,7 +33,9 @@ view model flex slotId slotName parent withHead =
         [ if (withHead)
         then div
                 [ css "height" "45px"
-                , css "max-width" "400px"
+                , if model.settings.frame == Mobile
+                then css "width" "100%"
+                else css "max-width" "400px"
                 , center
                 ]
                 [ iconTerm model.mdl [ css "margin" "5px"]
@@ -53,7 +57,9 @@ view model flex slotId slotName parent withHead =
         else div [] []
         , Lists.ul
             [ cs "slot__content"
-            , css "max-width" "400px"
+            , if model.settings.frame == Mobile
+            then css "width" "100%"
+            else css "max-width" "400px"
             , css "padding" "8px 0 0 0"
             , Material.Options.id ("slot" ++ (toString slotId))
             ]

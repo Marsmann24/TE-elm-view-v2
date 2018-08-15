@@ -17,7 +17,9 @@ import Material.Elevation as Elevation
 view : Model -> Property c Msg-> Int -> String -> Html Msg
 view model flex slotId name =
     div [ cs "slot"
-        , flex
+        , if model.settings.frame == Mobile
+        then css "width" "100%"
+        else flex
         , Elevation.e0
         , primaryColor
         , css "display" "inline-flex"

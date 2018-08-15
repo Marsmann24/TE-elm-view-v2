@@ -136,6 +136,20 @@ viewBody model =
     case model.settings.frame of
         Startpage ->
             Startpage.view model.settings
+        Mobile ->
+            let listLengthSub1 = ((List.length model.slots) - 1)
+            in
+            div [ Elevation.e4
+                , css "height" "100%"
+                ]
+                [ div []
+                    -- [ css "height" "40px"]
+                    (List.indexedMap toHistoryButton model.slots)
+                , div
+                    [ css "height" "calc(100% - 36px)"
+                    , cs "flex__row"]
+                    [ (slot model listLengthSub1 (Maybe.withDefault (Empty "100%") (List.head (List.reverse model.slots))))]
+                ]
         _ ->
             div [ Elevation.e4
                 , cs "flex__row"
@@ -205,3 +219,46 @@ slot model slotId view =
         _ ->
             div [ css "width" "100px"]
                 [ text "Error"]
+
+toHistoryButton : Int -> View -> Html Msg
+toHistoryButton slotId view =
+    case view of
+        TopicsView name _ ->
+            arrawRight name slotId
+        TermsDocumentsView name _ _ ->
+            arrawRight name slotId
+        TermsView name _ ->
+            arrawRight name slotId
+        DocumentsView name _ ->
+            arrawRight name slotId
+        ShowdocumentView document ->
+            arrawRight document.title slotId
+        TermsContainerSlot name _ ->
+            arrawRight name slotId
+        DocsContainerSlot name ->
+            arrawRight name slotId
+        CombinedView name view1 view2 ->
+            arrawRight name slotId
+        _ ->
+            arrawRight " ... " slotId
+
+
+arrawRight : String -> Int -> Html Msg
+arrawRight name slotId =
+    span
+        [ css "margin-left" "1px"
+        , css "padding" "14px 4px 2px 2px"
+        , css "border" "2px solid #78909c"
+        , css "border-radius" "3px 6px 6px 3px"
+        , Color.background (Color.color Color.BlueGrey Color.S200)
+        , onClick (DeleteSlot (slotId + 1))
+        ]
+        [ span
+            [ cs "arrawRight"
+            ]
+            []
+        , span
+            [ css "font-size" "18px"
+            ]
+            [ text name]
+        ]

@@ -52,6 +52,7 @@ type SearchResult
 
 type Frame
     = Startpage
+    | Mobile
     | ViewTopics
     | Custom
 

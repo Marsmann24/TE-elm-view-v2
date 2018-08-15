@@ -18,14 +18,18 @@ import Material.Chip as Chip
 view : Model -> Property c Msg -> Int -> String -> Html Msg
 view model flex slotId slotName =
     div [ cs "slot"
-        , flex
+        , if model.settings.frame == Mobile
+        then css "width" "100%"
+        else flex
         , Elevation.e0
         , primaryColor
         , css "display" "inline-flex"
         ]
         [ div
             [ css "height" "45px"
-            , css "max-width" "400px"
+            , if model.settings.frame == Mobile
+            then css "width" "100%"
+            else css "max-width" "400px"
             , center
             ]
             [ iconTopic model.mdl [ css "margin" "5px"]
@@ -49,7 +53,9 @@ view model flex slotId slotName =
             ]
         , div
             [ cs "slot__content"
-            , css "max-width" "400px"
+            , if model.settings.frame == Mobile
+            then css "width" "100%"
+            else css "max-width" "400px"
             , css "padding" "8px 0 0 0"
             ]
             (List.indexedMap (topic2Chip model model.mdl model.settings slotId) model.topics)
@@ -75,7 +81,7 @@ topic2Chip model mdl settings slotId id topic =
                     (Batch
                         [ (Request.createNewDocsContainer True model topic Nothing (slotId + 1))
                         , (Request.createNewTermsContainer True model topic (slotId + 1))
-                        , (ExecCmd (slotId + 1) "600px" Cmd.none) 
+                        , (ExecCmd (slotId + 1) "600px" Cmd.none)
                         ])
                 ]
                 [ span [ css "margin-right" "10px"] [ text (("Topic " ++ (toString topic.id)) ++ ": ")]

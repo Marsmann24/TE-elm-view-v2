@@ -23,7 +23,7 @@ view settings =
             [ Card.view
                   [ css "width" "400px"
                   , cs "startpage-card"
-                  , onClick (Open ViewTopics)
+                  , onClick (OpenCheckMobile ViewTopics Mobile)
                   ]
                   [ Card.text
                       [ css "height" "225px"

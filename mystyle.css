@@ -262,3 +262,16 @@ main{
     margin: calc(50% - 14px);
     width: 28px;
 }
+
+.arrawRight{
+
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  margin-top: 10px;
+  margin-right: 8px;
+  margin-left: -8px;
+  padding: 8px;
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}

@@ -11,6 +11,7 @@ import Http
 
 type Msg
     = Open Frame
+    | OpenCheckMobile Frame Frame
     | ResetSettings
     | Search String
     | AdvancedSearch String
