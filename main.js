@@ -22730,14 +22730,13 @@ var _user$project$Update$update = F2(
 			var _p0 = msg;
 			switch (_p0.ctor) {
 				case 'OpenCheckMobile':
-					var _p3 = _p0._0;
+					var _p2 = _p0._0;
 					var size2Msg = function (task) {
 						var _p1 = task;
 						if (_p1.ctor === 'Ok') {
-							var _p2 = _p1._0;
-							return (_elm_lang$core$Native_Utils.cmp(_p2.height, _p2.width) > 0) ? _user$project$Msg$Open(_p0._1) : _user$project$Msg$Open(_p3);
+							return (_elm_lang$core$Native_Utils.cmp(_p1._0.width, 612) < 0) ? _user$project$Msg$Open(_p0._1) : _user$project$Msg$Open(_p2);
 						} else {
-							return _user$project$Msg$Open(_p3);
+							return _user$project$Msg$Open(_p2);
 						}
 					};
 					return {
@@ -22746,8 +22745,8 @@ var _user$project$Update$update = F2(
 						_1: A2(_elm_lang$core$Task$attempt, size2Msg, _elm_lang$window$Window$size)
 					};
 				case 'Open':
-					var _p4 = _p0._0;
-					var newSlots = _elm_lang$core$Native_Utils.eq(_p4, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
+					var _p3 = _p0._0;
+					var newSlots = _elm_lang$core$Native_Utils.eq(_p3, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
 						_elm_lang$core$List$length(model.topics),
 						_user$project$Model$topicNumber) < 0) ? {
 						ctor: '::',
@@ -22759,7 +22758,7 @@ var _user$project$Update$update = F2(
 						_1: {ctor: '[]'}
 					}) : model.slots;
 					var settings = model.settings;
-					var cmd = _elm_lang$core$Native_Utils.eq(_p4, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
+					var cmd = _elm_lang$core$Native_Utils.eq(_p3, _user$project$Model$ViewTopics) ? ((_elm_lang$core$Native_Utils.cmp(
 						_elm_lang$core$List$length(model.topics),
 						_user$project$Model$topicNumber) < 0) ? _user$project$Request$loadTopics(0) : _elm_lang$core$Platform_Cmd$none) : _elm_lang$core$Platform_Cmd$none;
 					return {
@@ -22770,7 +22769,7 @@ var _user$project$Update$update = F2(
 								slots: newSlots,
 								settings: _elm_lang$core$Native_Utils.update(
 									settings,
-									{frame: _p4})
+									{frame: _p3})
 							}),
 						_1: cmd
 					};
@@ -22783,9 +22782,11 @@ var _user$project$Update$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				case 'Search':
-					var _p5 = _p0._0;
+					var _p4 = _p0._0;
 					var oldSettings = model.settings;
-					return (!_elm_lang$core$Native_Utils.eq(_p5, '')) ? {
+					return (_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$String$length(_p4),
+						2) > 0) ? {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
@@ -22793,16 +22794,18 @@ var _user$project$Update$update = F2(
 								settings: _elm_lang$core$Native_Utils.update(
 									oldSettings,
 									{
-										search: !_elm_lang$core$Native_Utils.eq(_p5, ''),
-										search4: _p5
+										search: !_elm_lang$core$Native_Utils.eq(_p4, ''),
+										search4: _p4
 									})
 							}),
-						_1: _user$project$Request$loadSearchTerms(_p5)
+						_1: _user$project$Request$loadSearchTerms(_p4)
 					} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 				case 'AdvancedSearch':
 					var searchterm = _elm_lang$core$String$toLower(_p0._0);
 					var oldSettings = model.settings;
-					if (!_elm_lang$core$Native_Utils.eq(searchterm, '')) {
+					if (_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$String$length(searchterm),
+						2) > 0) {
 						var request = function () {
 							if (A2(_elm_lang$core$String$startsWith, 'topic:', searchterm)) {
 								var search4topic = A2(_elm_lang$core$String$dropLeft, 6, searchterm);
@@ -22815,15 +22818,15 @@ var _user$project$Update$update = F2(
 									if (A2(_elm_lang$core$String$startsWith, 'document:', searchterm)) {
 										var search4doc = A2(_elm_lang$core$String$dropLeft, 9, searchterm);
 										var docId = _elm_lang$core$String$toInt(search4doc);
-										var _p6 = docId;
-										if (_p6.ctor === 'Ok') {
+										var _p5 = docId;
+										if (_p5.ctor === 'Ok') {
 											var doc = _user$project$Document$defaultDoc;
 											return A2(
 												_user$project$Request$loadDoc,
 												1,
 												_elm_lang$core$Native_Utils.update(
 													doc,
-													{id: _p6._0}));
+													{id: _p5._0}));
 										} else {
 											return A3(_user$project$Request$loadSearchDocs, search4doc, false, 'RELEVANCE');
 										}
@@ -22907,9 +22910,9 @@ var _user$project$Update$update = F2(
 					};
 				case 'NewTopics':
 					var oldSettings = model.settings;
-					var _p7 = _p0._2;
-					if (_p7.ctor === 'Ok') {
-						var _p8 = _p7._0;
+					var _p6 = _p0._2;
+					if (_p6.ctor === 'Ok') {
+						var _p7 = _p6._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -22920,10 +22923,10 @@ var _user$project$Update$update = F2(
 										A2(_elm_lang$core$List$take, _p0._1, model.slots),
 										{
 											ctor: '::',
-											_0: A2(_user$project$Model$TopicsView, _p0._0, _p8),
+											_0: A2(_user$project$Model$TopicsView, _p0._0, _p7),
 											_1: {ctor: '[]'}
 										}),
-									topics: _p8,
+									topics: _p7,
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{error: ''})
@@ -22939,7 +22942,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p7._0)
+											error: _elm_lang$core$Basics$toString(_p6._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -22947,9 +22950,9 @@ var _user$project$Update$update = F2(
 					}
 				case 'NewTerms':
 					var oldSettings = model.settings;
-					var _p9 = _p0._2;
-					if (_p9.ctor === 'Ok') {
-						var _p10 = _p9._0;
+					var _p8 = _p0._2;
+					if (_p8.ctor === 'Ok') {
+						var _p9 = _p8._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -22960,10 +22963,10 @@ var _user$project$Update$update = F2(
 										A2(_elm_lang$core$List$take, _p0._1, model.slots),
 										{
 											ctor: '::',
-											_0: A2(_user$project$Model$TermsView, _p0._0, _p10),
+											_0: A2(_user$project$Model$TermsView, _p0._0, _p9),
 											_1: {ctor: '[]'}
 										}),
-									terms: _p10,
+									terms: _p9,
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{error: ''})
@@ -22979,7 +22982,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p9._0)
+											error: _elm_lang$core$Basics$toString(_p8._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -22987,9 +22990,9 @@ var _user$project$Update$update = F2(
 					}
 				case 'NewDocs':
 					var oldSettings = model.settings;
-					var _p11 = _p0._2;
-					if (_p11.ctor === 'Ok') {
-						var _p12 = _p11._0;
+					var _p10 = _p0._2;
+					if (_p10.ctor === 'Ok') {
+						var _p11 = _p10._0;
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23000,10 +23003,10 @@ var _user$project$Update$update = F2(
 										A2(_elm_lang$core$List$take, _p0._1, model.slots),
 										{
 											ctor: '::',
-											_0: A2(_user$project$Model$DocumentsView, _p0._0, _p12),
+											_0: A2(_user$project$Model$DocumentsView, _p0._0, _p11),
 											_1: {ctor: '[]'}
 										}),
-									docs: _p12,
+									docs: _p11,
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{error: ''})
@@ -23019,7 +23022,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p11._0)
+											error: _elm_lang$core$Basics$toString(_p10._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -23028,8 +23031,8 @@ var _user$project$Update$update = F2(
 				case 'NewDocTokens':
 					var allTerms = model.terms;
 					var oldSettings = model.settings;
-					var _p13 = _p0._2;
-					if (_p13.ctor === 'Ok') {
+					var _p12 = _p0._2;
+					if (_p12.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23043,7 +23046,7 @@ var _user$project$Update$update = F2(
 											_0: A2(
 												_user$project$Model$TermsView,
 												_p0._0,
-												A2(_user$project$Document$documentTerms, _p13._0, allTerms)),
+												A2(_user$project$Document$documentTerms, _p12._0, allTerms)),
 											_1: {ctor: '[]'}
 										}),
 									settings: _elm_lang$core$Native_Utils.update(
@@ -23061,7 +23064,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p13._0)
+											error: _elm_lang$core$Basics$toString(_p12._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -23069,8 +23072,8 @@ var _user$project$Update$update = F2(
 					}
 				case 'NewDocument':
 					var oldSettings = model.settings;
-					var _p14 = _p0._1;
-					if (_p14.ctor === 'Ok') {
+					var _p13 = _p0._1;
+					if (_p13.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23081,7 +23084,7 @@ var _user$project$Update$update = F2(
 										A2(_elm_lang$core$List$take, _p0._0, model.slots),
 										{
 											ctor: '::',
-											_0: _user$project$Model$ShowdocumentView(_p14._0),
+											_0: _user$project$Model$ShowdocumentView(_p13._0),
 											_1: {ctor: '[]'}
 										}),
 									settings: _elm_lang$core$Native_Utils.update(
@@ -23106,11 +23109,11 @@ var _user$project$Update$update = F2(
 				case 'NewFrames':
 					return {ctor: '_Tuple2', _0: model, _1: _user$project$Update$scroll2Right};
 				case 'NewTermTopics':
-					var _p17 = _p0._0;
+					var _p16 = _p0._0;
 					var maybeTerm2TopicList = function (terms) {
-						var _p15 = terms;
-						if (_p15.ctor === 'Just') {
-							return _p15._0.top_topic;
+						var _p14 = terms;
+						if (_p14.ctor === 'Just') {
+							return _p14._0.top_topic;
 						} else {
 							return {ctor: '[]'};
 						}
@@ -23120,7 +23123,7 @@ var _user$project$Update$update = F2(
 							A2(
 								_elm_lang$core$List$filter,
 								function (x) {
-									return _elm_lang$core$Native_Utils.eq(x.name, _p17);
+									return _elm_lang$core$Native_Utils.eq(x.name, _p16);
 								},
 								terms));
 					};
@@ -23139,8 +23142,8 @@ var _user$project$Update$update = F2(
 							model.topics);
 					};
 					var oldSettings = model.settings;
-					var _p16 = _p0._2;
-					if (_p16.ctor === 'Ok') {
+					var _p15 = _p0._2;
+					if (_p15.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23153,8 +23156,8 @@ var _user$project$Update$update = F2(
 											ctor: '::',
 											_0: A2(
 												_user$project$Model$TopicsView,
-												A2(_elm_lang$core$Basics_ops['++'], 'Topics with ', _p17),
-												newTopics(_p16._0)),
+												A2(_elm_lang$core$Basics_ops['++'], 'Topics with ', _p16),
+												newTopics(_p15._0)),
 											_1: {ctor: '[]'}
 										}),
 									settings: _elm_lang$core$Native_Utils.update(
@@ -23172,7 +23175,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p16._0)
+											error: _elm_lang$core$Basics$toString(_p15._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -23204,27 +23207,68 @@ var _user$project$Update$update = F2(
 							model.topics);
 					};
 					var oldSettings = model.settings;
-					var _p18 = _p0._1;
-					if (_p18.ctor === 'Ok') {
+					var _p17 = _p0._1;
+					if (_p17.ctor === 'Ok') {
+						var _v11 = A2(_user$project$Msg$OpenCheckMobile, _user$project$Model$Custom, _user$project$Model$Mobile),
+							_v12 = _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: {
+									ctor: '::',
+									_0: A2(
+										_user$project$Model$TopicsView,
+										_p0._0,
+										newTopics(_p17._0)),
+									_1: {ctor: '[]'}
+								},
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{search: false, error: ''})
+							});
+						msg = _v11;
+						model = _v12;
+						continue update;
+					} else {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
 								{
-									slots: {
-										ctor: '::',
-										_0: A2(
-											_user$project$Model$TopicsView,
-											_p0._0,
-											newTopics(_p18._0)),
-										_1: {ctor: '[]'}
-									},
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
-										{search: false, error: '', frame: _user$project$Model$Custom})
+										{
+											search: false,
+											search4: '',
+											error: _elm_lang$core$Basics$toString(_p17._0)
+										})
 								}),
 							_1: _user$project$Update$scroll2Right
 						};
+					}
+				case 'NewSearchTerms':
+					var oldSettings = model.settings;
+					var _p18 = _p0._1;
+					if (_p18.ctor === 'Ok') {
+						var _p19 = _p18._0;
+						var _v14 = A2(_user$project$Msg$OpenCheckMobile, _user$project$Model$Custom, _user$project$Model$Mobile),
+							_v15 = _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: {
+									ctor: '::',
+									_0: A2(_user$project$Model$TermsView, _p0._0, _p19),
+									_1: {ctor: '[]'}
+								},
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{
+										searchResult: _user$project$Model$TermResult(_p19),
+										error: ''
+									})
+							});
+						msg = _v14;
+						model = _v15;
+						continue update;
 					} else {
 						return {
 							ctor: '_Tuple2',
@@ -23242,68 +23286,26 @@ var _user$project$Update$update = F2(
 							_1: _user$project$Update$scroll2Right
 						};
 					}
-				case 'NewSearchTerms':
-					var oldSettings = model.settings;
-					var _p19 = _p0._1;
-					if (_p19.ctor === 'Ok') {
-						var _p20 = _p19._0;
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
-								model,
-								{
-									slots: {
-										ctor: '::',
-										_0: A2(_user$project$Model$TermsView, _p0._0, _p20),
-										_1: {ctor: '[]'}
-									},
-									settings: _elm_lang$core$Native_Utils.update(
-										oldSettings,
-										{
-											searchResult: _user$project$Model$TermResult(_p20),
-											error: '',
-											frame: _user$project$Model$Custom
-										})
-								}),
-							_1: _user$project$Update$scroll2Right
-						};
-					} else {
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
-								model,
-								{
-									settings: _elm_lang$core$Native_Utils.update(
-										oldSettings,
-										{
-											search: false,
-											search4: '',
-											error: _elm_lang$core$Basics$toString(_p19._0)
-										})
-								}),
-							_1: _user$project$Update$scroll2Right
-						};
-					}
 				case 'NewSearchDocs':
 					var oldSettings = model.settings;
-					var _p21 = _p0._1;
-					if (_p21.ctor === 'Ok') {
-						return {
-							ctor: '_Tuple2',
-							_0: _elm_lang$core$Native_Utils.update(
-								model,
-								{
-									slots: {
-										ctor: '::',
-										_0: A2(_user$project$Model$DocumentsView, _p0._0, _p21._0),
-										_1: {ctor: '[]'}
-									},
-									settings: _elm_lang$core$Native_Utils.update(
-										oldSettings,
-										{search: false, error: '', frame: _user$project$Model$Custom})
-								}),
-							_1: _user$project$Update$scroll2Right
-						};
+					var _p20 = _p0._1;
+					if (_p20.ctor === 'Ok') {
+						var _v17 = A2(_user$project$Msg$OpenCheckMobile, _user$project$Model$Custom, _user$project$Model$Mobile),
+							_v18 = _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								slots: {
+									ctor: '::',
+									_0: A2(_user$project$Model$DocumentsView, _p0._0, _p20._0),
+									_1: {ctor: '[]'}
+								},
+								settings: _elm_lang$core$Native_Utils.update(
+									oldSettings,
+									{search: false, error: ''})
+							});
+						msg = _v17;
+						model = _v18;
+						continue update;
 					} else {
 						return {
 							ctor: '_Tuple2',
@@ -23315,7 +23317,7 @@ var _user$project$Update$update = F2(
 										{
 											search: false,
 											search4: '',
-											error: _elm_lang$core$Basics$toString(_p21._0)
+											error: _elm_lang$core$Basics$toString(_p20._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -23323,37 +23325,37 @@ var _user$project$Update$update = F2(
 					}
 				case 'ReturnDocs':
 					var oldSettings = model.settings;
-					var _p22 = _p0._3;
-					if (_p22.ctor === 'Ok') {
-						var _p25 = _p22._0;
+					var _p21 = _p0._3;
+					if (_p21.ctor === 'Ok') {
+						var _p24 = _p21._0;
 						var newAnswer = function () {
-							var _p23 = model.answer.terms;
-							if (_p23.ctor === 'Just') {
+							var _p22 = model.answer.terms;
+							if (_p22.ctor === 'Just') {
 								return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
 							} else {
 								return {
-									docs: _elm_lang$core$Maybe$Just(_p25),
+									docs: _elm_lang$core$Maybe$Just(_p24),
 									terms: _elm_lang$core$Maybe$Nothing
 								};
 							}
 						}();
 						var view = function () {
-							var _p24 = model.answer.terms;
-							if (_p24.ctor === 'Just') {
+							var _p23 = model.answer.terms;
+							if (_p23.ctor === 'Just') {
 								return A3(
 									_user$project$Model$TermsDocumentsView,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'Details for Topic',
 										_elm_lang$core$Basics$toString(_p0._0.id)),
-									_p24._0,
-									_p25);
+									_p23._0,
+									_p24);
 							} else {
 								return A3(
 									_user$project$Model$TermsDocumentsView,
 									'loading',
 									{ctor: '[]'},
-									_p25);
+									_p24);
 							}
 						}();
 						return {
@@ -23370,7 +23372,7 @@ var _user$project$Update$update = F2(
 											_1: {ctor: '[]'}
 										}),
 									answer: newAnswer,
-									docs: _p25,
+									docs: _p24,
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{error: ''})
@@ -23386,7 +23388,7 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p22._0)
+											error: _elm_lang$core$Basics$toString(_p21._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
@@ -23394,36 +23396,36 @@ var _user$project$Update$update = F2(
 					}
 				case 'ReturnTerms':
 					var oldSettings = model.settings;
-					var _p26 = _p0._3;
-					if (_p26.ctor === 'Ok') {
-						var _p29 = _p26._0;
+					var _p25 = _p0._3;
+					if (_p25.ctor === 'Ok') {
+						var _p28 = _p25._0;
 						var newAnswer = function () {
-							var _p27 = model.answer.docs;
-							if (_p27.ctor === 'Just') {
+							var _p26 = model.answer.docs;
+							if (_p26.ctor === 'Just') {
 								return {docs: _elm_lang$core$Maybe$Nothing, terms: _elm_lang$core$Maybe$Nothing};
 							} else {
 								return {
 									docs: _elm_lang$core$Maybe$Nothing,
-									terms: _elm_lang$core$Maybe$Just(_p29)
+									terms: _elm_lang$core$Maybe$Just(_p28)
 								};
 							}
 						}();
 						var view = function () {
-							var _p28 = model.answer.docs;
-							if (_p28.ctor === 'Just') {
+							var _p27 = model.answer.docs;
+							if (_p27.ctor === 'Just') {
 								return A3(
 									_user$project$Model$TermsDocumentsView,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'Details for Topic',
 										_elm_lang$core$Basics$toString(_p0._0.id)),
-									_p29,
-									_p28._0);
+									_p28,
+									_p27._0);
 							} else {
 								return A3(
 									_user$project$Model$TermsDocumentsView,
 									'loading',
-									_p29,
+									_p28,
 									{ctor: '[]'});
 							}
 						}();
@@ -23440,7 +23442,7 @@ var _user$project$Update$update = F2(
 											_0: view,
 											_1: {ctor: '[]'}
 										}),
-									terms: _p29,
+									terms: _p28,
 									answer: newAnswer,
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
@@ -23457,17 +23459,17 @@ var _user$project$Update$update = F2(
 									settings: _elm_lang$core$Native_Utils.update(
 										oldSettings,
 										{
-											error: _elm_lang$core$Basics$toString(_p26._0)
+											error: _elm_lang$core$Basics$toString(_p25._0)
 										})
 								}),
 							_1: _user$project$Update$scroll2Right
 						};
 					}
 				case 'ExecCmd':
-					var _p30 = _p0._0;
-					var newSlot = (_elm_lang$core$Native_Utils.cmp(_p30, 0) > -1) ? A2(
+					var _p29 = _p0._0;
+					var newSlot = (_elm_lang$core$Native_Utils.cmp(_p29, 0) > -1) ? A2(
 						_elm_lang$core$List$append,
-						A2(_elm_lang$core$List$take, _p30, model.slots),
+						A2(_elm_lang$core$List$take, _p29, model.slots),
 						{
 							ctor: '::',
 							_0: _user$project$Model$Empty(_p0._1),
@@ -23482,11 +23484,11 @@ var _user$project$Update$update = F2(
 						_1: _p0._2
 					};
 				case 'CombineTopic':
-					var _p33 = _p0._1;
+					var _p32 = _p0._1;
 					var maybeTerm2TopicList = function (terms) {
-						var _p31 = terms;
-						if (_p31.ctor === 'Just') {
-							return _p31._0.top_topic;
+						var _p30 = terms;
+						if (_p30.ctor === 'Just') {
+							return _p30._0.top_topic;
 						} else {
 							return {ctor: '[]'};
 						}
@@ -23496,7 +23498,7 @@ var _user$project$Update$update = F2(
 							A2(
 								_elm_lang$core$List$filter,
 								function (x) {
-									return _elm_lang$core$Native_Utils.eq(x.name, _p33);
+									return _elm_lang$core$Native_Utils.eq(x.name, _p32);
 								},
 								terms));
 					};
@@ -23514,55 +23516,55 @@ var _user$project$Update$update = F2(
 							isMember(terms),
 							model.topics);
 					};
-					var _p32 = _p0._2;
-					if (_p32.ctor === 'Ok') {
-						var _v21 = A3(
+					var _p31 = _p0._2;
+					if (_p31.ctor === 'Ok') {
+						var _v27 = A3(
 							_user$project$Msg$Combine,
 							_p0._0,
-							A2(_elm_lang$core$Basics_ops['++'], 'Search Result for ', _p33),
+							A2(_elm_lang$core$Basics_ops['++'], 'Search Result for ', _p32),
 							A2(
 								_user$project$Model$TopicsView,
 								'',
-								newTopics(_p32._0))),
-							_v22 = model;
-						msg = _v21;
-						model = _v22;
+								newTopics(_p31._0))),
+							_v28 = model;
+						msg = _v27;
+						model = _v28;
 						continue update;
 					} else {
 						return {
 							ctor: '_Tuple2',
-							_0: A2(_user$project$Update$includeError, model, _p32._0),
+							_0: A2(_user$project$Update$includeError, model, _p31._0),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					}
 				case 'CombineDoc':
-					var _p34 = _p0._2;
-					if (_p34.ctor === 'Ok') {
-						var _v24 = A3(
+					var _p33 = _p0._2;
+					if (_p33.ctor === 'Ok') {
+						var _v30 = A3(
 							_user$project$Msg$Combine,
 							_p0._0,
 							A2(_elm_lang$core$Basics_ops['++'], 'Search Result for ', _p0._1),
-							A2(_user$project$Model$DocumentsView, '', _p34._0)),
-							_v25 = model;
-						msg = _v24;
-						model = _v25;
+							A2(_user$project$Model$DocumentsView, '', _p33._0)),
+							_v31 = model;
+						msg = _v30;
+						model = _v31;
 						continue update;
 					} else {
 						return {
 							ctor: '_Tuple2',
-							_0: A2(_user$project$Update$includeError, model, _p34._0),
+							_0: A2(_user$project$Update$includeError, model, _p33._0),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					}
 				case 'Combine':
-					var _p40 = _p0._2;
-					var _p39 = _p0._0;
-					var _p38 = _p0._1;
-					var _p35 = function () {
-						var _p36 = _elm_lang$core$List$head(
-							A2(_elm_lang$core$List$drop, _p39, model.slots));
-						if ((_p36.ctor === 'Just') && (_p36._0.ctor === 'CombinedView')) {
-							return {ctor: '_Tuple2', _0: _p36._0._1, _1: _p36._0._2};
+					var _p39 = _p0._2;
+					var _p38 = _p0._0;
+					var _p37 = _p0._1;
+					var _p34 = function () {
+						var _p35 = _elm_lang$core$List$head(
+							A2(_elm_lang$core$List$drop, _p38, model.slots));
+						if ((_p35.ctor === 'Just') && (_p35._0.ctor === 'CombinedView')) {
+							return {ctor: '_Tuple2', _0: _p35._0._1, _1: _p35._0._2};
 						} else {
 							return {
 								ctor: '_Tuple2',
@@ -23571,19 +23573,19 @@ var _user$project$Update$update = F2(
 							};
 						}
 					}();
-					var oldView1 = _p35._0;
-					var oldView2 = _p35._1;
+					var oldView1 = _p34._0;
+					var oldView2 = _p34._1;
 					var newView = function () {
-						var _p37 = oldView1;
-						if ((_p37.ctor === 'Empty') && (_p37._0 === '300px')) {
-							return A3(_user$project$Model$CombinedView, _p38, _p40, oldView2);
+						var _p36 = oldView1;
+						if ((_p36.ctor === 'Empty') && (_p36._0 === '300px')) {
+							return A3(_user$project$Model$CombinedView, _p37, _p39, oldView2);
 						} else {
-							return A3(_user$project$Model$CombinedView, _p38, oldView1, _p40);
+							return A3(_user$project$Model$CombinedView, _p37, oldView1, _p39);
 						}
 					}();
-					var newSlots = (_elm_lang$core$Native_Utils.cmp(_p39, 0) > -1) ? A2(
+					var newSlots = (_elm_lang$core$Native_Utils.cmp(_p38, 0) > -1) ? A2(
 						_elm_lang$core$List$append,
-						A2(_elm_lang$core$List$take, _p39, model.slots),
+						A2(_elm_lang$core$List$take, _p38, model.slots),
 						{
 							ctor: '::',
 							_0: newView,
@@ -23598,18 +23600,18 @@ var _user$project$Update$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				case 'NewTermsContainerSlot':
-					var _p43 = _p0._3;
-					var _p42 = _p0._1;
-					var newView = A2(_user$project$Model$TermsContainerSlot, _p42, _p0._2);
-					var _p41 = A2(
+					var _p42 = _p0._3;
+					var _p41 = _p0._1;
+					var newView = A2(_user$project$Model$TermsContainerSlot, _p41, _p0._2);
+					var _p40 = A2(
 						_user$project$Update$update,
-						A3(_user$project$Msg$Combine, _p43, _p42, newView),
+						A3(_user$project$Msg$Combine, _p42, _p41, newView),
 						model);
-					var model_ = _p41._0;
-					var msg_ = _p41._1;
+					var model_ = _p40._0;
+					var msg_ = _p40._1;
 					var newSlots = _p0._0 ? model_.slots : A2(
 						_elm_lang$core$List$append,
-						A2(_elm_lang$core$List$take, _p43, model.slots),
+						A2(_elm_lang$core$List$take, _p42, model.slots),
 						{
 							ctor: '::',
 							_0: newView,
@@ -23617,7 +23619,7 @@ var _user$project$Update$update = F2(
 						});
 					var oldDict = model.termsDict;
 					var oldSettings = model.settings;
-					if (A2(_elm_lang$core$Dict$member, _p42, oldDict)) {
+					if (A2(_elm_lang$core$Dict$member, _p41, oldDict)) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23626,22 +23628,22 @@ var _user$project$Update$update = F2(
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
-						var _v28 = _p0._5,
-							_v29 = _elm_lang$core$Native_Utils.update(
+						var _v34 = _p0._5,
+							_v35 = _elm_lang$core$Native_Utils.update(
 							model,
 							{
 								slots: newSlots,
-								termsDict: A3(_elm_lang$core$Dict$insert, _p42, _p0._4, oldDict)
+								termsDict: A3(_elm_lang$core$Dict$insert, _p41, _p0._4, oldDict)
 							});
-						msg = _v28;
-						model = _v29;
+						msg = _v34;
+						model = _v35;
 						continue update;
 					}
 				case 'ManageTermsCache':
 					var oldSettings = model.settings;
-					var _p44 = A2(_user$project$ContainerCache$update, _p0._0, model.termsCache);
-					var newdata = _p44._0;
-					var cmd = _p44._1;
+					var _p43 = A2(_user$project$ContainerCache$update, _p0._0, model.termsCache);
+					var newdata = _p43._0;
+					var cmd = _p43._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -23655,18 +23657,18 @@ var _user$project$Update$update = F2(
 						_1: A2(_elm_lang$core$Platform_Cmd$map, _user$project$Msg$ManageTermsCache, cmd)
 					};
 				case 'NewDocsContainerSlot':
-					var _p47 = _p0._2;
-					var _p46 = _p0._1;
-					var newView = _user$project$Model$DocsContainerSlot(_p46);
-					var _p45 = A2(
+					var _p46 = _p0._2;
+					var _p45 = _p0._1;
+					var newView = _user$project$Model$DocsContainerSlot(_p45);
+					var _p44 = A2(
 						_user$project$Update$update,
-						A3(_user$project$Msg$Combine, _p47, _p46, newView),
+						A3(_user$project$Msg$Combine, _p46, _p45, newView),
 						model);
-					var model_ = _p45._0;
-					var msg_ = _p45._1;
+					var model_ = _p44._0;
+					var msg_ = _p44._1;
 					var newSlots = _p0._0 ? model_.slots : A2(
 						_elm_lang$core$List$append,
-						A2(_elm_lang$core$List$take, _p47, model.slots),
+						A2(_elm_lang$core$List$take, _p46, model.slots),
 						{
 							ctor: '::',
 							_0: newView,
@@ -23674,7 +23676,7 @@ var _user$project$Update$update = F2(
 						});
 					var oldDict = model.docsDict;
 					var oldSettings = model.settings;
-					if (A2(_elm_lang$core$Dict$member, _p46, oldDict)) {
+					if (A2(_elm_lang$core$Dict$member, _p45, oldDict)) {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
@@ -23683,22 +23685,22 @@ var _user$project$Update$update = F2(
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
-						var _v30 = _p0._4,
-							_v31 = _elm_lang$core$Native_Utils.update(
+						var _v36 = _p0._4,
+							_v37 = _elm_lang$core$Native_Utils.update(
 							model,
 							{
 								slots: newSlots,
-								docsDict: A3(_elm_lang$core$Dict$insert, _p46, _p0._3, oldDict)
+								docsDict: A3(_elm_lang$core$Dict$insert, _p45, _p0._3, oldDict)
 							});
-						msg = _v30;
-						model = _v31;
+						msg = _v36;
+						model = _v37;
 						continue update;
 					}
 				case 'ManageDocsCache':
 					var oldSettings = model.settings;
-					var _p48 = A2(_user$project$ContainerCache$update, _p0._0, model.docsCache);
-					var newdata = _p48._0;
-					var cmd = _p48._1;
+					var _p47 = A2(_user$project$ContainerCache$update, _p0._0, model.docsCache);
+					var newdata = _p47._0;
+					var cmd = _p47._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(

@@ -31,7 +31,7 @@ update msg model =
             let size2Msg task =
                     case task of
                         Ok deviceSize ->
-                            if (deviceSize.height > deviceSize.width)
+                            if (deviceSize.width < 612)
                             then Open mobileframe
                             else Open frame
                         Err error ->
@@ -64,7 +64,7 @@ update msg model =
         Search searchterm ->
             let oldSettings = model.settings
             in
-            if not (searchterm == "")
+            if ((String.length searchterm) > 2)
             then
                 ({ model
                     | settings =
@@ -79,7 +79,7 @@ update msg model =
             let oldSettings = model.settings
                 searchterm = String.toLower string
             in
-            if not (searchterm == "")
+            if ((String.length searchterm) > 2)
             then
                 let request =
                         (if (String.startsWith "topic:" searchterm)
@@ -275,15 +275,15 @@ update msg model =
             in
             case result of
                 Ok termList ->
-                    ({ model
-                        | slots = [ TopicsView name (newTopics termList)]
-                        , settings =
-                            { oldSettings
-                                | search = False
-                                , error = ""
-                                , frame = Custom
-                            }
-                    }, scroll2Right)
+                    (update (OpenCheckMobile Custom Mobile)
+                        { model
+                            | slots = [ TopicsView name (newTopics termList)]
+                            , settings =
+                                { oldSettings
+                                    | search = False
+                                    , error = ""
+                                }
+                        })
                 Err err ->
                     ({ model
                         | settings =
@@ -298,15 +298,15 @@ update msg model =
             in
             case result of
                 Ok termList ->
-                    ({ model
-                        | slots = [ TermsView name termList]
-                        , settings =
-                            { oldSettings
-                                | searchResult = TermResult termList
-                                , error = ""
-                                , frame = Custom
-                            }
-                    }, scroll2Right)
+                    (update (OpenCheckMobile Custom Mobile)
+                        { model
+                            | slots = [ TermsView name termList]
+                            , settings =
+                                { oldSettings
+                                    | searchResult = TermResult termList
+                                    , error = ""
+                                }
+                        })
                 Err err ->
                     ({ model
                         | settings =
@@ -321,15 +321,16 @@ update msg model =
             in
             case result of
                 Ok docList ->
-                    ({ model
-                        | slots = [ DocumentsView name docList]
-                        , settings =
-                            { oldSettings
-                                | search = False
-                                , error = ""
-                                , frame = Custom
-                            }
-                    }, scroll2Right)
+                    (update (OpenCheckMobile Custom Mobile)
+                        { model
+                            | slots = [ DocumentsView name docList]
+                            , settings =
+                                { oldSettings
+                                    | search = False
+                                    , error = ""
+                                }
+                        }
+                    )
                 Err err ->
                     ({ model
                         | settings =
